@@ -5,7 +5,9 @@ services:
   database:
     # Utiliza la imagen oficial de MariaDB en su versión 11.4
     image: mariadb:11.4
-    
+    #asigna el puerto 3306 del contenedor al mismo puerto en el host para permitir conexiones externas (por ejemplo, desde un cliente MySQL)
+    ports:
+      - "3306:3306"
     # Asigna un nombre fijo al contenedor en Docker ("peluqueria-db")
     container_name: peluqueria-db
     
