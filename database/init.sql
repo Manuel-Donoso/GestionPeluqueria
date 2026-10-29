@@ -1,0 +1,1 @@
+-- Inicialización de la base de datos para la peluquería
