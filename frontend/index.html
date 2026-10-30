@@ -1,11 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>login</title>
+  <!-- Metadatos de configuración y optimización -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Política de Seguridad de Contenidos (CSP): Restringe orígenes para prevenir ataques XSS -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src http://127.0.0.1:8080; img-src 'self' data:;">
+  
+  <!-- Título de la pestaña del navegador -->
+  <title>Login - Gestión de Peluquería</title>
+  
+  <!-- Enlace a la hoja de estilos CSS externa -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+  
+  <!-- Carga del script de JavaScript de forma asíncrona tras parsear el DOM ('defer') -->
+  <script src="assets/js/login.js" defer></script>
 </head>
 <body>
-   
+  <!-- Contenedor principal de la aplicación con clase semántica 'shell' -->
+  <main class="shell">
+    
+    <!-- Cabecera superior de la vista -->
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">ACCESO AL SISTEMA</p>
+        <h1>Gestión de Peluquería</h1>
+        <p class="muted">Introduce tus credenciales para continuar</p>
+      </div>
+      <!-- Indicador dinámico de estado de la API, controlado por JavaScript -->
+      <span id="status" class="status">Comprobando API…</span>
+    </header>
+
+    <!-- Contenedor principal para el formulario de autenticación -->
+    <div class="auth-container">
+      <section class="welcome">
+        <div>
+          <p class="eyebrow">INICIAR SESIÓN</p>
+          <h2>Bienvenido de nuevo.</h2>
+          <p>Accede al panel de control para gestionar la agenda, clientes y servicios.</p>
+        </div>
+        
+        <!-- Tarjeta que envuelve el formulario de acceso -->
+        <div class="login-card-uniform">
+          <p class="eyebrow">SEGURIDAD</p>
+          <h3 >Credenciales de Acceso</h3>
+          
+          <!-- Formulario de inicio de sesión -->
+          <form id="login-form" class="login-form-grid">
+            
+            <!-- Grupo de entrada para el usuario -->
+            <div class="input-group">
+              <label for="usuario">Usuario</label>
+              <br>
+              <input type="text" id="usuario" name="usuario" required placeholder="Ej. admin">
+            </div>
+            
+            <!-- Grupo de entrada para la contraseña -->
+            <div class="input-group">
+              <label for="password">Contraseña</label>
+              <br>
+              <input type="password" id="password" name="password" required placeholder="••••••••">
+            </div>
+
+            <!-- Botón de envío del formulario -->
+            <button type="submit" class="btn-submit">
+              Entrar al Panel
+            </button>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <!-- Pie de página que detalla el stack tecnológico del proyecto local -->
+    <footer>Proyecto local · PHP API · MariaDB · Electron</footer>
+  </main>
 </body>
 </html>

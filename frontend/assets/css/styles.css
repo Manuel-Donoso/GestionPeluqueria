@@ -1,0 +1,200 @@
+/*
+   ==========================================================================
+   CONFIGURACIÓN GLOBAL Y VARIABLES BASE
+   ========================================================================== 
+*/
+:root {
+  color-scheme: dark; /* Activa el modo oscuro nativo en los elementos del navegador */
+  font-family: Inter, "Segoe UI", sans-serif; /* Tipografía principal limpia y moderna con respaldos */
+  background: #111315; /* Color de fondo general de la aplicación (gris muy oscuro) */
+  color: #f4f1ed; /* Color general del texto (tono marfil claro para reducir fatiga visual) */
+  font-synthesis: none; /* Evita que el navegador sintonice negritas o cursivas artificiales */
+}
+
+/* Aplica box-sizing a todos los elementos para que padding y border no rompan los anchos */
+* { box-sizing: border-box; }
+
+/* Configuración básica del cuerpo de la página */
+body { 
+  margin: 0; 
+  min-height: 100vh; /* Asegura que ocupe al menos toda la altura de la pantalla */
+}
+
+
+/* ==========================================================================
+   ESTRUCTURA PRINCIPAL Y CONTENEDORES
+   ========================================================================== */
+/* Contenedor central fluido que limita el ancho máximo y adapta los márgenes laterales */
+.shell { 
+  max-width: 1440px; 
+  margin: 0 auto; 
+  padding: 42px clamp(20px, 5vw, 72px); 
+}
+
+/* Barra superior flexible (alinea elementos a los extremos con espacio entre ellos) */
+.topbar { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  gap: 24px; 
+}
+
+
+/* ==========================================================================
+   TIPOGRAFÍA (TÍTULOS Y TEXTOS)
+   ========================================================================== */
+/* Títulos principales con tamaño fluido y espaciado de letras ajustado */
+h1 { 
+  margin: 6px 0; 
+  font-size: clamp(1.6rem, 3vw, 2.4rem); 
+  letter-spacing: -0.04em; 
+}
+
+h2 { 
+  font-size: clamp(1.6rem, 3vw, 2.6rem); 
+  margin: 8px 0 12px; 
+}
+
+h3 { 
+  margin: 18px 0 8px; 
+}
+
+/* Altura de línea cómoda para la lectura de párrafos */
+p { 
+  line-height: 1.6; 
+}
+
+/* Texto pequeño superior (estilo etiqueta o subtítulo decorativo) */
+.eyebrow { 
+  font-size: .72rem; 
+  letter-spacing: .16em; 
+  font-weight: 700; 
+  color: #d9a879; /* Tono dorado/cobrizo corporativo */
+}
+
+/* Clases de utilidad para textos secundarios, párrafos de módulos y pies de página */
+.muted, .module p, footer { 
+  color: #a6a6a6; 
+}
+
+
+/* ==========================================================================
+   INDICADORES DE ESTADO (BADGES)
+   ========================================================================== */
+/* Estilo base para las pastillas o etiquetas de estado */
+.status { 
+  padding: 9px 13px; 
+  border: 1px solid #414548; 
+  border-radius: 999px; /* Bordes completamente redondeados (forma de píldora) */
+  font-size: .85rem; 
+  white-space: nowrap; /* Evita que el texto del estado se divida en varias líneas */
+}
+
+/* Estado OK / Correcto (tonos verdosos) */
+.status.ok { 
+  color: #a7e4bc; 
+  border-color: #347b4a; 
+}
+
+/* Estado de Error (tonos rojizos) */
+.status.error { 
+  color: #ffb4a9; 
+  border-color: #9b3e35; 
+}
+
+
+/* ==========================================================================
+   SECCIÓN DE BIENVENIDA (BANNER)
+   ========================================================================== */
+.welcome { 
+  margin: 42px 0 28px; 
+  padding: clamp(24px, 4vw, 48px); 
+  background: linear-gradient(125deg, #30251f, #1d1d1d 72%); /* Degradado elegante en tonos oscuros/marrones */
+  border: 1px solid #4b3a2d; 
+  border-radius: 24px; /* Esquinas muy redondeadas tipo tarjeta moderna */
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  gap: 20px; 
+}
+
+/* Limita el ancho del texto dentro del banner para que sea legible */
+.welcome p:last-child { 
+  max-width: 560px; 
+  color: #c5c0bb; 
+}
+
+/* Elemento gráfico decorativo (ej. icono o emoji de tijeras) */
+.scissors { 
+  font-size: clamp(3rem, 7vw, 6rem); 
+  color: #d9a879; 
+  padding: 10px 24px; 
+}
+
+
+/* ==========================================================================
+   SISTEMA DE CUADRÍCULA (GRID) Y MÓDULOS
+   ========================================================================== */
+/* Cuadrícula por defecto de 4 columnas iguales */
+.grid { 
+  display: grid; 
+  grid-template-columns: repeat(4, minmax(0, 1fr)); 
+  gap: 16px; 
+}
+
+/* Estilo individual para cada tarjeta o módulo de la app */
+.module { 
+  padding: 22px; 
+  border: 1px solid #34383b; 
+  background: #1a1c1e; 
+  border-radius: 16px; 
+  min-height: 160px; 
+}
+
+/* Pequeña etiqueta o título dentro de los módulos */
+.module span { 
+  color: #d9a879; 
+  font-size: .8rem; 
+  font-weight: 700; 
+}
+
+.module p { 
+  font-size: .92rem; 
+}
+
+/* Pie de página */
+footer { 
+  margin-top: 44px; 
+  font-size: .8rem; 
+}
+
+
+/* ==========================================================================
+   DISEÑO RESPONSIVO (MEDIA QUERIES)
+   ========================================================================== */
+/* Pantallas medianas (tablets o portátiles pequeños): pasa de 4 a 2 columnas */
+@media (max-width: 900px) { 
+  .grid { 
+    grid-template-columns: repeat(2, minmax(0, 1fr)); 
+  } 
+}
+
+/* Pantallas pequeñas (móviles): ajusta espacios y apila elementos */
+@media (max-width: 560px) { 
+  .shell { 
+    padding-top: 24px; 
+  } 
+  .topbar { 
+    align-items: flex-start; 
+    flex-direction: column; /* Apila la barra superior verticalmente */
+  } 
+  .welcome { 
+    margin-top: 28px; 
+  } 
+  .scissors { 
+    display: none; /* Oculta el elemento decorativo grande en móviles para ahorrar espacio */
+  } 
+  .grid { 
+    grid-template-columns: 1fr; /* Pasa la cuadrícula a una sola columna */
+  } 
+}
