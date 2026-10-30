@@ -80,6 +80,13 @@ services:
       # Expone el puerto de la API únicamente en localhost (127.0.0.1) por seguridad, 
       # usando la variable ${API_PORT} o el puerto 8080 por defecto, mapeado al puerto 80 del contenedor.
       - "127.0.0.1:${API_PORT:-8080}:80"
+
+    volumes:
+      # Sincroniza tu código PHP local con el contenedor
+      - ./backend:/var/www/html
+      
+      # Sincroniza tu carpeta frontend local dentro de la ruta pública de Apache 
+      - ./frontend:/var/www/html/public
       
     # Control de dependencias: la API esperará a que el servicio "database" esté completamente listo y saludable
     depends_on:
