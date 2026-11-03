@@ -1,0 +1,15 @@
+
+# Activar el motor de reescritura
+RewriteEngine On
+
+# Evitar el acceso a archivos ocultos (.env, .git, etc.)
+RewriteRule (^|/)\. - [F,L]
+
+# Si la petición corresponde a un archivo o directorio existente,
+# Apache lo sirve directamente
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# El resto de peticiones pasan por el controlador principal
+RewriteRule ^ index.php [QSA,L]
