@@ -4,8 +4,8 @@ const statusElement = document.querySelector('#status');
 // Define una función asíncrona para comprobar el estado de la API
 async function checkApi() {
   // Obtiene la URL base desde un objeto global (window.peluqueria.apiBaseUrl) 
-  // o usa 'http://127.0.0.1:8080' por defecto si no está definida.
-  const baseUrl = window.peluqueria?.apiBaseUrl || 'http://127.0.0.1:8080';
+  // o usa 'http://127.0.0.1:8081' por defecto si no está definida.
+  const baseUrl = window.peluqueria?.apiBaseUrl || 'http://127.0.0.1:8081';
 
   try {
     // Realiza una petición HTTP GET al endpoint '/api/health' indicando que se espera JSON
