@@ -1,122 +1,206 @@
-# Define el bloque principal donde se configuran todos los servicios (contenedores)
+
+# ==========================================================
+# PROYECTO: APLICACIÓN DE GESTIÓN DE PELUQUERÍA
+# Servicios: Frontend + API + Base de datos
+# ==========================================================
+
 services:
-  # Servicio número 1: La base de datos (MariaDB)
+
+  # ========================================================
+  # SERVICIO 1: BASE DE DATOS (MariaDB)
+  # ========================================================
+
   database:
-    # Utiliza la imagen oficial de MariaDB en su versión 11.4
+
+    # Imagen oficial de MariaDB
     image: mariadb:11.4
-    #asigna el puerto 3306 del contenedor al mismo puerto en el host para permitir conexiones externas (por ejemplo, desde un cliente MySQL)
-    ports:
-      - "3306:3306"
-    # Asigna un nombre fijo al contenedor en Docker ("peluqueria-db")
+
+    # Nombre fijo del contenedor
     container_name: peluqueria-db
 
-    # Política de reinicio: se reiniciará automáticamente si se apaga,
-    # a menos que sea detenido manualmente.
+    # Reiniciar automáticamente salvo parada manual
     restart: unless-stopped
 
-    # Variables de entorno que configuran MariaDB al arrancar por primera vez
+    # Puerto de conexión desde el equipo anfitrión.
+    # Permite utilizar herramientas como DBeaver.
+    # Solo acepta conexiones desde el propio equipo.
+    ports:
+      - "127.0.0.1:3306:3306"
+
+    # Variables de configuración de MariaDB
     environment:
-      # Nombre de la BD a crear. Usa la variable ${DB_NAME} del archivo .env; si no existe, por defecto será "peluqueria"
+
+      # Base de datos que se creará al inicializar el volumen
       MARIADB_DATABASE: ${DB_NAME:-peluqueria}
 
-      # Usuario normal con permisos sobre esa BD. Si no existe en .env, usa "peluqueria_app"
+      # Usuario de la aplicación
       MARIADB_USER: ${DB_USER:-peluqueria_app}
 
-      # Contraseña del usuario normal. El operador `:?` obliga a que esté definida en el .env; si falta, Docker lanzará un error.
+      # Contraseña del usuario de la aplicación
       MARIADB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
 
-      # Contraseña del usuario administrador (root). También es obligatoria en el archivo .env
+      # Contraseña del administrador de MariaDB
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Define DB_ROOT_PASSWORD en .env}
 
-      # Zona horaria del contenedor. Por defecto toma ${TZ} o "Europe/Madrid"
+      # Zona horaria
       TZ: ${TZ:-Europe/Madrid}
 
-    # Volúmenes para persistencia de datos y scripts de inicialización
+    # Volúmenes para conservar los datos y cargar los scripts SQL
     volumes:
-      # Volumen persistente para guardar los archivos de la base de datos y que no se pierdan al apagar el contenedor
+
+      # Persistencia de la base de datos
       - mariadb_data:/var/lib/mysql
 
-      # Monta un archivo SQL local de inicialización dentro de la ruta de arranque de MariaDB en modo solo lectura (:ro)
+      # Script de creación de tablas
       - ./database/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
 
-      # Monta el archivo con los datos por defecto (se ejecuta después gracias al prefijo 002)
+      # Script de inserción de datos iniciales
       - ./database/default_data.sql:/docker-entrypoint-initdb.d/002-data.sql:ro
 
-    # Conecta este contenedor a la red interna llamada "backend"
+    # Conexión a la red interna
     networks:
       - backend
 
-    # Configuración de salud (Healthcheck): le dice a Docker cómo comprobar si la base de datos está lista y funcionando
+    # Comprobación de disponibilidad de MariaDB
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s # Comprueba el estado cada 10 segundos
-      timeout: 5s # Tiempo máximo de espera para la respuesta de la prueba
-      retries: 10 # Número de intentos fallidos antes de marcar el contenedor como "no saludable"
-      start_period: 30s # Tiempo de gracia inicial para que el motor de la base de datos arranque
+      test:
+        [
+          "CMD",
+          "healthcheck.sh",
+          "--connect",
+          "--innodb_initialized"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
-  # Servicio número 2: La API de la aplicación (Backend)
+
+  # ========================================================
+  # SERVICIO 2: API (PHP 8.4 + Apache)
+  # ========================================================
+
   api:
-    # Instrucciones para construir la imagen localmente en lugar de descargar una ya hecha
-    build:
-      context: ./backend # Directorio donde se encuentra el contexto del código fuente (Dockerfile y archivos)
-      dockerfile: Dockerfile # Nombre del archivo Dockerfile a utilizar
 
-    # Asigna un nombre fijo al contenedor de la API ("peluqueria-api")
+    # Construir la imagen utilizando nuestro Dockerfile
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    # Nombre fijo del contenedor
     container_name: peluqueria-api
 
-    # Política de reinicio automático ante fallos o reinicios del sistema
+    # Reinicio automático
     restart: unless-stopped
 
-    # Variables de entorno para la configuración de la API (entorno, zona horaria y conexión a la BD)
+    # Variables de entorno de la API
     environment:
-      APP_ENV: ${APP_ENV:-development} # Entorno de la aplicación (por defecto development)
-      APP_TIMEZONE: ${TZ:-Europe/Madrid} # Zona horaria sincronizada con la del sistema/BD
-      DB_HOST: database # Nombre del host de la base de datos (coincide con el nombre del servicio de arriba)
-      DB_PORT: 3306 # Puerto estándar de MariaDB/MySQL
+
+      # Entorno de ejecución
+      APP_ENV: ${APP_ENV:-development}
+
+      # Zona horaria de PHP
+      APP_TIMEZONE: ${TZ:-Europe/Madrid}
+
+      # Configuración de conexión con MariaDB
+      # "database" es el nombre del servicio dentro de Docker.
+      DB_HOST: database
+      DB_PORT: 3306
       DB_NAME: ${DB_NAME:-peluqueria}
       DB_USER: ${DB_USER:-peluqueria_app}
       DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en .env}
 
-    # Mapeo de puertos entre tu máquina local (host) y el contenedor
+    # Puerto de acceso a la API desde el equipo anfitrión
+    # Puerto local 8081 -> Puerto 80 del contenedor
     ports:
-      # Expone el puerto de la API únicamente en localhost (127.0.0.1) por seguridad,
-      # usando la variable ${API_PORT} o el puerto 8080 por defecto, mapeado al puerto 80 del contenedor.
-      - "127.0.0.1:${API_PORT:-8080}:80"
+      - "127.0.0.1:${API_PORT:-8081}:80"
 
+    # Sincronizar el código PHP local con el contenedor
     volumes:
-      # Sincroniza tu código PHP local con el contenedor
       - ./backend:/var/www/html
 
-      # Sincroniza tu carpeta frontend local dentro de la ruta pública de Apache
-      - ./frontend:/var/www/html/public
-
-    # Control de dependencias: la API esperará a que el servicio "database" esté completamente listo y saludable
+    # Esperar a que MariaDB esté disponible antes de iniciar
     depends_on:
       database:
         condition: service_healthy
 
-    # Conecta la API a la misma red interna "backend" para que pueda comunicarse con la base de datos
+    # Red interna
     networks:
       - backend
 
-    # Healthcheck para comprobar el estado de la API (comprueba si el servidor web en el puerto 80 responde)
+    # Comprobar que Apache está escuchando
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          'php -r ''$$s=@fsockopen("127.0.0.1",80); exit($$s ? 0 : 1);''',
+          "php -r '$$s=@fsockopen(\"127.0.0.1\",80); exit($$s ? 0 : 1);'"
         ]
       interval: 15s
       timeout: 5s
       retries: 5
 
-# Declaración de los volúmenes globales gestionados por Docker
+
+  # ========================================================
+  # SERVICIO 3: FRONTEND (Apache)
+  # ========================================================
+
+  frontend:
+
+    # Imagen oficial de PHP con Apache.
+    # En este contenedor PHP no se utiliza como backend:
+    # Apache se limita a servir HTML, CSS y JavaScript.
+    image: php:8.4-apache
+
+    # Nombre fijo del contenedor
+    container_name: peluqueria-frontend
+
+    # Reinicio automático
+    restart: unless-stopped
+
+    # Puerto de acceso al frontend
+    # Puerto local 8080 -> Puerto 80 del contenedor
+    ports:
+      - "127.0.0.1:8080:80"
+
+    # Montar la carpeta del frontend en el directorio
+    # público por defecto de Apache.
+    volumes:
+      - ./frontend:/var/www/html
+
+    # Red interna
+    networks:
+      - backend
+
+    # Comprobar que Apache está escuchando
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "php -r '$$s=@fsockopen(\"127.0.0.1\",80); exit($$s ? 0 : 1);'"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+
+# ==========================================================
+# VOLÚMENES PERSISTENTES
+# ==========================================================
+
 volumes:
-  # Volumen con nombre que almacena de forma persistente los datos de MariaDB
+
+  # Almacena los datos de MariaDB.
+  # Los datos permanecen aunque se eliminen los contenedores.
   mariadb_data:
 
-# Declaración de las redes virtuales personalizadas
+
+# ==========================================================
+# REDES
+# ==========================================================
+
 networks:
-  # Red tipo "bridge" que aísla los contenedores y permite que se comuniquen entre sí usando sus nombres de servicio
+
+  # Red privada para la comunicación entre contenedores.
+  # El frontend no necesita acceder directamente a MariaDB.
   backend:
     driver: bridge
