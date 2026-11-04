@@ -35,7 +35,10 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../src/response.php';
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/health.php';
-
+require_once __DIR__ . '/../src/login.php';
+require_once __DIR__ . '/../src/auth.php';
+require_once __DIR__ . '/../src/logout.php';
+require_once __DIR__ . '/../src/me.php';
 // ======================================================
 // CONFIGURACIÓN GENERAL
 // ======================================================
@@ -97,6 +100,22 @@ if ($method === 'GET' && $path === '/api/health') {
     health();
 }
 
+
+// POST /api/login
+if ($method === 'POST' && $path === '/api/login') {
+
+    login();
+}
+
+// POST /api/logout
+if ($method === 'POST' && $path === '/api/logout') {
+
+    logout();
+}
+// GET /api/me
+if ($method === 'GET' && $path === '/api/me') {
+    me();
+}
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================

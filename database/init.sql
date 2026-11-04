@@ -24,12 +24,13 @@ ON DUPLICATE KEY UPDATE rol=rol;
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS PELUQUEROS (
     IDPeluquero INT AUTO_INCREMENT PRIMARY KEY,
+    Usuario VARCHAR(50) NOT NULL UNIQUE,
     Nombre VARCHAR(50) NOT NULL,
     Apellido1 VARCHAR(50) NOT NULL,
     Apellido2 VARCHAR(50),
     Telefono VARCHAR(20),
     Direccion VARCHAR(255),
-    Email VARCHAR(100),
+    Email VARCHAR(100) UNIQUE,
     Notas TEXT,
     PW VARCHAR(255) NOT NULL,
     Restarurar BOOLEAN DEFAULT FALSE,
@@ -129,6 +130,40 @@ CREATE TABLE IF NOT EXISTS AUDITORIA (
 );
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ---------------------------------------------------------------------
+-- 10. TABLA: RESTABLECIMIENTOS
+-- ---------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS RESTABLECIMIENTOS (
+    IDRestablecimiento INT AUTO_INCREMENT PRIMARY KEY,
+    FK_Peluquero INT NOT NULL,
+    Token VARCHAR(255) NOT NULL,
+    FechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FechaExpiracion DATETIME NOT NULL,
+    Utilizado BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (FK_Peluquero)
+        REFERENCES PELUQUEROS(IDPeluquero)
+);
+
+
+
+-- =====================================================
+-- 11. TABLA: TOKENS_ACCESO
+-- Gestión de sesiones y autenticación de usuarios.
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS TOKENS_ACCESO (
+    IDToken INT AUTO_INCREMENT PRIMARY KEY,
+    FK_Peluquero INT NOT NULL,
+    TokenHash CHAR(64) NOT NULL UNIQUE,
+    FechaCreacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FechaExpiracion DATETIME NOT NULL,
+    Revocado BOOLEAN DEFAULT FALSE,
+
+    FOREIGN KEY (FK_Peluquero)
+        REFERENCES PELUQUEROS(IDPeluquero)
+);
 
 -- =====================================================================
 -- TRIGGERS DE AUDITORIA (Adaptados a CLIENTES)

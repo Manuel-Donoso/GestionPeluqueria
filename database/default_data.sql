@@ -28,10 +28,10 @@ ALTER TABLE PELUQUEROS AUTO_INCREMENT = 1;
 -- - Admin: "Admin2026*" -> Hash: $2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi (Password por defecto estándar)
 -- - Peluqueros: "Peluquero2026*" -> Hash: $2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm
 -- ---------------------------------------------------------------------
-INSERT INTO PELUQUEROS ( Nombre, Apellido1, Apellido2, Telefono, Direccion, Email, Notas, PW, Restarurar, FK_rol, FechaAlta, FechaBaja, baja) VALUES
-('Carlos', 'Administrador', 'Pérez', '600111222', 'Calle Mayor 1, Madrid', 'admin@peluqueria.com', 'Administrador principal del sistema.', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 0, 1, '2026-01-01 08:00:00', NULL, 0),
-('Laura', 'García', 'Sanz', '611222333', 'Avenida de América 45, Madrid', 'laura@peluqueria.com', 'Especialista en coloración y mechas.', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 0, 2, '2026-01-10 09:00:00', NULL, 0),
-('Miguel', 'Fernández', 'López', '622333444', 'Calle Toledo 12, Madrid', 'miguel@peluqueria.com', 'Especialista en cortes modernos y barbería.', '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', 0, 2, '2026-02-01 09:00:00', NULL, 0);
+INSERT INTO PELUQUEROS (Usuario, Nombre, Apellido1, Apellido2, Telefono, Direccion, Email, Notas, PW, Restarurar, FK_rol, FechaAlta, FechaBaja, baja) VALUES
+('CarAdP','Carlos', 'Administrador', 'Pérez', '600111222', 'Calle Mayor 1, Madrid', 'admin@peluqueria.com', 'Administrador principal del sistema.', '$2y$12$.bC..uVBaR.FuajruOj3vehy1mgn9q.MFypF8SiwdAHE5/MQ8uBR2', 0, 1, '2026-01-01 08:00:00', NULL, 0),
+('LauGarc','Laura', 'García', 'Sanz', '611222333', 'Avenida de América 45, Madrid', 'laura@peluqueria.com', 'Especialista en coloración y mechas.', '$2y$12$.bC..uVBaR.FuajruOj3vehy1mgn9q.MFypF8SiwdAHE5/MQ8uBR2', 0, 2, '2026-01-10 09:00:00', NULL, 0),
+('MigFern','Miguel', 'Fernández', 'López', '622333444', 'Calle Toledo 12, Madrid', 'miguel@peluqueria.com', 'Especialista en cortes modernos y barbería.', '$2y$12$.bC..uVBaR.FuajruOj3vehy1mgn9q.MFypF8SiwdAHE5/MQ8uBR2', 0, 2, '2026-02-01 09:00:00', NULL, 0);
 
 -- ---------------------------------------------------------------------
 -- 2. CLIENTES
