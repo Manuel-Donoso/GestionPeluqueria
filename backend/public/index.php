@@ -124,6 +124,14 @@ if ($method === 'GET' && $path === '/api/me') {
 if ($method === 'GET' && $path === '/api/peluqueros') {
     listarPeluqueros();
 }
+
+// GET /api/peluqueros/{id}
+if (
+    $method === 'GET'
+    && preg_match('#^/api/peluqueros/(\d+)$#', $path, $matches)
+) {
+    obtenerPeluquero((int) $matches[1]);
+}
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================
