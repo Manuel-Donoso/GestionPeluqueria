@@ -147,6 +147,14 @@ if ($method === 'PUT' && preg_match('#^/api/peluqueros/(\d+)$#', $path, $matches
 if ($method === 'PATCH' && preg_match('#^/api/peluqueros/(\d+)/baja$#', $path, $matches)) {
     darDeBajaPeluquero((int) $matches[1]);
 }
+
+// PATCH /api/peluqueros/{id}/reactivar
+if (
+    $method === 'PATCH'
+    && preg_match('#^/api/peluqueros/(\d+)/reactivar$#', $path, $matches)
+) {
+    reactivarPeluquero((int) $matches[1]);
+}
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================

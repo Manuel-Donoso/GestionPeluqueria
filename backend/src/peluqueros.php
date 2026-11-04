@@ -645,3 +645,79 @@ function darDeBajaPeluquero(int $id): void
         ]);
     }
 }
+
+
+/**
+ * Reactiva a un peluquero que estaba dado de baja.
+ */
+function reactivarPeluquero(int $id): void
+{
+    try {
+        $pdo = getPDO();
+
+        // Solo los administradores pueden reactivar peluqueros.
+        requireAdmin($pdo);
+
+        if ($id <= 0) {
+            response(400, [
+                'status' => 'error',
+                'message' => 'El identificador del peluquero no es válido'
+            ]);
+        }
+
+        // Comprobar que el peluquero existe.
+        $stmt = $pdo->prepare("
+            SELECT IDPeluquero, baja
+            FROM PELUQUEROS
+            WHERE IDPeluquero = :id
+            LIMIT 1
+        ");
+
+        $stmt->execute(['id' => $id]);
+
+        $peluquero = $stmt->fetch();
+
+        if (!$peluquero) {
+            response(404, [
+                'status' => 'error',
+                'message' => 'No se ha encontrado el peluquero'
+            ]);
+        }
+
+        // Comprobar que realmente está dado de baja.
+        if (!(bool) $peluquero['baja']) {
+            response(409, [
+                'status' => 'error',
+                'message' => 'El peluquero ya está activo'
+            ]);
+        }
+
+        // Reactivar el peluquero.
+        $stmt = $pdo->prepare("
+            UPDATE PELUQUEROS
+            SET
+                baja = FALSE,
+                FechaBaja = NULL
+            WHERE IDPeluquero = :id
+        ");
+
+        $stmt->execute(['id' => $id]);
+
+        response(200, [
+            'status' => 'ok',
+            'message' => 'Peluquero reactivado correctamente',
+            'id' => $id
+        ]);
+
+    } catch (PDOException $e) {
+        error_log(
+            'Error de base de datos al reactivar peluquero: '
+            . $e->getMessage()
+        );
+
+        response(500, [
+            'status' => 'error',
+            'message' => 'Error al reactivar el peluquero'
+        ]);
+    }
+}
