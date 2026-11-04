@@ -35,10 +35,13 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../src/response.php';
 require_once __DIR__ . '/../src/database.php';
 require_once __DIR__ . '/../src/health.php';
+
 require_once __DIR__ . '/../src/login.php';
 require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/logout.php';
 require_once __DIR__ . '/../src/me.php';
+
+require_once __DIR__ . '/../src/peluqueros.php';
 // ======================================================
 // CONFIGURACIÓN GENERAL
 // ======================================================
@@ -115,6 +118,11 @@ if ($method === 'POST' && $path === '/api/logout') {
 // GET /api/me
 if ($method === 'GET' && $path === '/api/me') {
     me();
+}
+
+// GET /api/peluqueros
+if ($method === 'GET' && $path === '/api/peluqueros') {
+    listarPeluqueros();
 }
 // ======================================================
 // ENDPOINT NO ENCONTRADO
