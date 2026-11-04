@@ -142,6 +142,11 @@ if ($method === 'POST' && $path === '/api/peluqueros') {
 if ($method === 'PUT' && preg_match('#^/api/peluqueros/(\d+)$#', $path, $matches)) {
     actualizarPeluquero((int)$matches[1]);
 }
+
+// PATCH /api/peluqueros/{id}/baja
+if ($method === 'PATCH' && preg_match('#^/api/peluqueros/(\d+)/baja$#', $path, $matches)) {
+    darDeBajaPeluquero((int) $matches[1]);
+}
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================

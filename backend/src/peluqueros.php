@@ -569,3 +569,79 @@ function actualizarPeluquero(int $id): void
         ]);
     }
 }
+
+
+/**
+ * Da de baja a un peluquero sin eliminar su registro.
+ */
+function darDeBajaPeluquero(int $id): void
+{
+    try {
+        $pdo = getPDO();
+
+        // Solo los administradores pueden dar de baja.
+        requireAdmin($pdo);
+
+        if ($id <= 0) {
+            response(400, [
+                'status' => 'error',
+                'message' => 'El identificador del peluquero no es válido'
+            ]);
+        }
+
+        // Comprobar que el peluquero existe.
+        $stmt = $pdo->prepare("
+            SELECT IDPeluquero, baja
+            FROM PELUQUEROS
+            WHERE IDPeluquero = :id
+            LIMIT 1
+        ");
+
+        $stmt->execute(['id' => $id]);
+
+        $peluquero = $stmt->fetch();
+
+        if (!$peluquero) {
+            response(404, [
+                'status' => 'error',
+                'message' => 'No se ha encontrado el peluquero'
+            ]);
+        }
+
+        // Evitar dar de baja a alguien que ya está de baja.
+        if ((bool) $peluquero['baja']) {
+            response(409, [
+                'status' => 'error',
+                'message' => 'El peluquero ya está dado de baja'
+            ]);
+        }
+
+        // Realizar la baja lógica.
+        $stmt = $pdo->prepare("
+            UPDATE PELUQUEROS
+            SET
+                baja = TRUE,
+                FechaBaja = NOW()
+            WHERE IDPeluquero = :id
+        ");
+
+        $stmt->execute(['id' => $id]);
+
+        response(200, [
+            'status' => 'ok',
+            'message' => 'Peluquero dado de baja correctamente',
+            'id' => $id
+        ]);
+
+    } catch (PDOException $e) {
+        error_log(
+            'Error de base de datos al dar de baja peluquero: '
+            . $e->getMessage()
+        );
+
+        response(500, [
+            'status' => 'error',
+            'message' => 'Error al dar de baja al peluquero'
+        ]);
+    }
+}
