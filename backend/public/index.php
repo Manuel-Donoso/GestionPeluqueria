@@ -132,6 +132,11 @@ if (
 ) {
     obtenerPeluquero((int) $matches[1]);
 }
+
+// POST /api/peluqueros
+if ($method === 'POST' && $path === '/api/peluqueros') {
+    crearPeluquero();
+}
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================
