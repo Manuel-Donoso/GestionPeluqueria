@@ -4,14 +4,26 @@ meta {
   seq: 2
 }
 
-get {
+put {
   url: {{baseUrl}}/api/perfil
-  body: none
+  body: json
   auth: bearer
 }
 
 auth:bearer {
   token: {{token}}
+}
+
+body:json {
+  {
+      "Nombre": "Carlos",
+      "Apellido1": "Administrado",
+      "Apellido2": "López",
+      "Telefono": "600123456",
+      "Direccion": "Calle Mayor 10",
+      "Email": "admin@peluqueria.com",
+      "Notas": "Perfil actualizado desde Bruno"
+  }
 }
 
 settings {
