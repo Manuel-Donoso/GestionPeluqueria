@@ -159,6 +159,11 @@ if ($method === 'PUT' && $path === '/api/perfil') {
     actualizarPerfil();
 }
 
+// PUT /api/perfil/password
+if ($method === 'PUT' && $path === '/api/perfil/password') {
+    actualizarPasswordPerfil();
+}
+
 // PATCH /api/peluqueros/{id}/reactivar
 if (
     $method === 'PATCH'

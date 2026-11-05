@@ -1,0 +1,28 @@
+meta {
+  name: modificar contrasena
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/perfil/password
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "password_actual": "NuevaClave2026!",
+      "password_nueva": "Admin2026*!",
+      "confirmar_password": "Admin2026*!"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
