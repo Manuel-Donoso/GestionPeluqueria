@@ -154,6 +154,11 @@ if ($method === 'GET' && $path === '/api/perfil') {
     obtenerPerfil();
 }
 
+// PUT /api/perfil
+if ($method === 'PUT' && $path === '/api/perfil') {
+    actualizarPerfil();
+}
+
 // PATCH /api/peluqueros/{id}/reactivar
 if (
     $method === 'PATCH'
