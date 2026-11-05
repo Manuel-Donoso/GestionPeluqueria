@@ -1,0 +1,20 @@
+meta {
+  name: ver mi perfil
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/perfil
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

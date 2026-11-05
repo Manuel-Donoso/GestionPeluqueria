@@ -42,6 +42,7 @@ require_once __DIR__ . '/../src/logout.php';
 require_once __DIR__ . '/../src/me.php';
 
 require_once __DIR__ . '/../src/peluqueros.php';
+require_once __DIR__ . '/../src/perfil.php';
 // ======================================================
 // CONFIGURACIÓN GENERAL
 // ======================================================
@@ -146,6 +147,11 @@ if ($method === 'PUT' && preg_match('#^/api/peluqueros/(\d+)$#', $path, $matches
 // PATCH /api/peluqueros/{id}/baja
 if ($method === 'PATCH' && preg_match('#^/api/peluqueros/(\d+)/baja$#', $path, $matches)) {
     darDeBajaPeluquero((int) $matches[1]);
+}
+
+// GET /api/perfil
+if ($method === 'GET' && $path === '/api/perfil') {
+    obtenerPerfil();
 }
 
 // PATCH /api/peluqueros/{id}/reactivar
