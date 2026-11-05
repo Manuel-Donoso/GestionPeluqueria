@@ -1,0 +1,36 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/login
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "identificador": "CarAdP",
+    "password": "Admin2026*"
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  
+  if (body && body.token) {
+      bru.setGlobalEnvVar("token", body.token);
+      console.log("Token guardado. Longitud: " + body.token.length);
+  } else {
+      console.error("No se ha encontrado el token");
+  }
+  
+  console.log(bru.getEnvVar("token"));
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

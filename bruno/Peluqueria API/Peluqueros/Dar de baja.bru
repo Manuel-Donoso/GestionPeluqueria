@@ -1,0 +1,20 @@
+meta {
+  name: Dar de baja
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{baseUrl}}/api/peluqueros/2/baja
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

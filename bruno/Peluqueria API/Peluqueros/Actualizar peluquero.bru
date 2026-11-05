@@ -1,0 +1,35 @@
+meta {
+  name: Actualizar peluquero
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/api/peluqueros/4
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "Usuario": "peluquero01",
+      "Nombre": "Carlos",
+      "Apellido1": "Garcia",
+      "Apellido2": "Lopez",
+      "Telefono": "600123456",
+      "Direccion": "Calle Mayor 20",
+      "Email": "carlos@peluqueria.com",
+      "Notas": "Datos actualizados",
+      "PW": "NuevaPassword123!",
+      "FK_rol": 2
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

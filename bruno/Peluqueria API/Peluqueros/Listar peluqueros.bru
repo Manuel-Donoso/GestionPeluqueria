@@ -1,0 +1,20 @@
+meta {
+  name: Listar peluqueros
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/peluqueros
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

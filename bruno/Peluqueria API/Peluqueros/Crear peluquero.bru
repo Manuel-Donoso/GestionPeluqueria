@@ -1,0 +1,35 @@
+meta {
+  name: Crear peluquero
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/peluqueros
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "Usuario": "peluquero02",
+      "Nombre": "Carlos",
+      "Apellido1": "Garcia",
+      "Apellido2": "Lopez",
+      "Telefono": "600123456",
+      "Direccion": "Calle Mayor 10",
+      "Email": "carlos2@peluqueria.com",
+      "Notas": "Empleado de prueba",
+      "PW": "Peluquero123!",
+      "FK_rol": 2
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

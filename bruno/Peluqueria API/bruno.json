@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Peluqueria API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
