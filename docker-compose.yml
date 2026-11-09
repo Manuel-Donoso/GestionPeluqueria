@@ -160,7 +160,7 @@ services:
     # Puerto de acceso al frontend
     # Puerto local 8080 -> Puerto 80 del contenedor
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:${GUI_PORT:-8080}:80"
 
     # Montar la carpeta del frontend en el directorio
     # público por defecto de Apache.
