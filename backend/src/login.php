@@ -50,7 +50,7 @@ function login(): void
                 Apellido2,
                 Email,
                 PW,
-                Restarurar,
+                Restaurar,
                 FK_rol
             FROM PELUQUEROS
             WHERE
@@ -79,7 +79,7 @@ function login(): void
 
         // Comprobar si el administrador ha autorizado
         // el restablecimiento de contraseña.
-        if ((bool) $usuario['Restarurar']) {
+        if ((bool) $usuario['Restaurar']) {
 
             // Para restablecer la contraseña se exige
             // introducir el nombre de usuario.
