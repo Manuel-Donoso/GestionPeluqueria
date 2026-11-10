@@ -1,0 +1,202 @@
+
+/* ==========================================================
+   PERFIL DE USUARIO
+   ========================================================== */
+
+/* Navegación del perfil */
+.profile-navigation {
+    margin: 24px 0;
+}
+
+.profile-navigation a {
+    color: #e9a15b;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.profile-navigation a:hover {
+    color: #ffc27e;
+    text-decoration: underline;
+}
+
+
+/* Tarjetas de contenido */
+.profile-card {
+    background: #17191c;
+    border: 1px solid #292c30;
+    border-radius: 14px;
+    padding: 30px;
+    margin-bottom: 24px;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Encabezados de sección */
+.section-heading {
+    margin-bottom: 26px;
+}
+
+.section-heading h2 {
+    margin: 8px 0 10px;
+}
+
+.section-heading .muted {
+    margin-bottom: 0;
+}
+
+
+/* Distribución de los formularios */
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 28px;
+}
+
+
+/* Campos individuales */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.input-group label {
+    color: #e6e6e6;
+    font-size: 0.92rem;
+    font-weight: 500;
+}
+
+.input-group input,
+.input-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    background: #222529;
+    border: 1px solid #3a3e43;
+    border-radius: 7px;
+    color: #f2f2f2;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+.input-group input:focus,
+.input-group textarea:focus {
+    outline: none;
+    border-color: #d99450;
+    box-shadow: 0 0 0 3px rgba(217, 148, 80, 0.13);
+}
+
+.input-group input:read-only {
+    background: #1b1d20;
+    color: #a5a5a5;
+    border-color: #303338;
+    cursor: not-allowed;
+}
+
+.input-group textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+
+/* Campos que ocupan todo el ancho */
+.input-group.full-width {
+    grid-column: 1 / -1;
+}
+
+
+/* Botones de los formularios */
+.profile-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.profile-actions button {
+    padding: 12px 22px;
+    background: #d99450;
+    border: 1px solid #d99450;
+    border-radius: 7px;
+    color: #171717;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease,
+                transform 0.2s ease;
+}
+
+.profile-actions button:hover {
+    background: #f0aa65;
+    transform: translateY(-1px);
+}
+
+.profile-actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+/* Mensajes de los formularios */
+.form-message {
+    margin-top: 20px;
+    padding: 12px 15px;
+    border-radius: 7px;
+    font-size: 0.9rem;
+}
+
+.form-message[hidden] {
+    display: none;
+}
+
+.form-message.success {
+    background: rgba(65, 160, 105, 0.12);
+    border: 1px solid #367b50;
+    color: #80d9a0;
+}
+
+.form-message.error {
+    background: rgba(190, 65, 65, 0.12);
+    border: 1px solid #8d3939;
+    color: #ff9999;
+}
+
+
+/* Pie de página */
+.profile-card + footer {
+    margin-top: 35px;
+}
+
+
+/* ==========================================================
+   DISEÑO RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 700px) {
+
+    .profile-card {
+        padding: 20px;
+    }
+
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .input-group.full-width {
+        grid-column: auto;
+    }
+
+    .profile-actions {
+        justify-content: stretch;
+    }
+
+    .profile-actions button {
+        width: 100%;
+    }
+
+}

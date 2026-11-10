@@ -1,0 +1,267 @@
+
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src http://127.0.0.1:8081; img-src 'self' data:;">
+
+    <title>Mi perfil - Gestión de Peluquería</title>
+
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/perfil.css">
+    
+    <script src="../assets/js/api.js" defer></script>
+    <script src="../assets/js/auth.js" defer></script>
+    <script src="../assets/js/perfil.js" defer></script>
+</head>
+
+<body>
+
+    <main class="shell">
+
+        <!-- Cabecera -->
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">GESTIÓN DE PELUQUERÍA</p>
+                <h1>Mi perfil</h1>
+                <p class="muted">
+                    Consulta y administra tus datos personales.
+                </p>
+            </div>
+
+            <div>
+                <span id="status" class="status">
+                    Comprobando API...
+                </span>
+            </div>
+
+        </header>
+
+
+        <!-- Navegación -->
+        <nav class="profile-navigation">
+            <a href="../dashboard.html">← Volver al panel de control</a>
+        </nav>
+
+
+        <!-- Datos personales -->
+        <section class="profile-card">
+
+            <div class="section-heading">
+                <p class="eyebrow">INFORMACIÓN PERSONAL</p>
+                <h2>Mis datos</h2>
+                <p class="muted">
+                    Estos son los datos asociados a tu cuenta.
+                </p>
+            </div>
+
+            <form id="profile-form">
+
+                <div class="profile-form-grid">
+
+                    <div class="input-group">
+                        <label for="nombre">Nombre</label>
+                        <input
+                            type="text"
+                            id="nombre"
+                            name="Nombre"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="apellido1">Primer apellido</label>
+                        <input
+                            type="text"
+                            id="apellido1"
+                            name="Apellido1"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="apellido2">Segundo apellido</label>
+                        <input
+                            type="text"
+                            id="apellido2"
+                            name="Apellido2"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="telefono">Teléfono</label>
+                        <input
+                            type="tel"
+                            id="telefono"
+                            name="Telefono"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="email">Correo electrónico</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="Email"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="direccion">Dirección</label>
+                        <input
+                            type="text"
+                            id="direccion"
+                            name="Direccion"
+                        >
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label for="notas">Notas</label>
+                        <textarea
+                            id="notas"
+                            name="Notas"
+                            rows="4"
+                        ></textarea>
+                    </div>
+
+                </div>
+
+                <div id="profile-message"
+                     class="form-message"
+                     role="alert"
+                     hidden>
+                </div>
+
+                <div class="profile-actions">
+                    <button type="submit" id="save-profile-button">
+                        Guardar cambios
+                    </button>
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- Información de la cuenta -->
+        <section class="profile-card">
+
+            <div class="section-heading">
+                <p class="eyebrow">CUENTA DE USUARIO</p>
+                <h2>Información de acceso</h2>
+                <p class="muted">
+                    Información que no puedes modificar desde este apartado.
+                </p>
+            </div>
+
+            <div class="profile-form-grid">
+
+                <div class="input-group">
+                    <label for="usuario">Nombre de usuario</label>
+                    <input
+                        type="text"
+                        id="usuario"
+                        readonly
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label for="fecha-alta">Fecha de alta</label>
+                    <input
+                        type="text"
+                        id="fecha-alta"
+                        readonly
+                    >
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- Cambio de contraseña -->
+        <section class="profile-card">
+
+            <div class="section-heading">
+                <p class="eyebrow">SEGURIDAD</p>
+                <h2>Cambiar contraseña</h2>
+                <p class="muted">
+                    Utiliza una contraseña segura de al menos 8 caracteres.
+                </p>
+            </div>
+
+            <form id="password-form">
+
+                <div class="profile-form-grid">
+
+                    <div class="input-group full-width">
+                        <label for="password-actual">
+                            Contraseña actual
+                        </label>
+                        <input
+                            type="password"
+                            id="password-actual"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password-nueva">
+                            Nueva contraseña
+                        </label>
+                        <input
+                            type="password"
+                            id="password-nueva"
+                            required
+                            minlength="8"
+                            autocomplete="new-password"
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="confirmar-password">
+                            Confirmar nueva contraseña
+                        </label>
+                        <input
+                            type="password"
+                            id="confirmar-password"
+                            required
+                            minlength="8"
+                            autocomplete="new-password"
+                        >
+                    </div>
+
+                </div>
+
+                <div id="password-message"
+                     class="form-message"
+                     role="alert"
+                     hidden>
+                </div>
+
+                <div class="profile-actions">
+                    <button type="submit" id="change-password-button">
+                        Cambiar contraseña
+                    </button>
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <footer>
+            Proyecto local · PHP API · MariaDB · Electron
+        </footer>
+
+    </main>
+
+</body>
+</html>
