@@ -155,38 +155,128 @@ async function loadProfile() {
  * definido el endpoint correspondiente en PHP.
  *
  * @param {Event} event Evento de envío.
- */
-function handleProfileSubmit(event) {
+xº
 
-    event.preventDefault();
-
-    showMessage(
-        profileMessage,
-        'La actualización de los datos personales todavía no está implementada.'
-    );
-
-}
 
 
 /**
- * Gestiona el envío del formulario de cambio de contraseña.
- *
- * La operación se implementará cuando tengamos
- * definido el endpoint correspondiente en PHP.
+ * Gestiona el envío del formulario de datos personales.
  *
  * @param {Event} event Evento de envío.
  */
-function handlePasswordSubmit(event) {
+async function handleProfileSubmit(event) {
 
+    event.preventDefault();
+
+    // Ocultar mensajes anteriores.
+    hideMessage(profileMessage);
+
+    // Obtener los datos del formulario.
+    const perfil = {
+        Nombre: document.querySelector('#nombre').value.trim(),
+        Apellido1: document.querySelector('#apellido1').value.trim(),
+        Apellido2: document.querySelector('#apellido2').value.trim(),
+        Telefono: document.querySelector('#telefono').value.trim(),
+        Email: document.querySelector('#email').value.trim(),
+        Direccion: document.querySelector('#direccion').value.trim(),
+        Notas: document.querySelector('#notas').value.trim()
+    };
+
+    // Comprobar los campos obligatorios.
+    if (!perfil.Nombre || !perfil.Apellido1 || !perfil.Email) {
+
+        showMessage(
+            profileMessage,
+            'El nombre, el primer apellido y el correo electrónico son obligatorios.'
+        );
+
+        return;
+    }
+
+    // Deshabilitar el botón mientras se procesa la petición.
+    saveProfileButton.disabled = true;
+    saveProfileButton.textContent = 'Guardando...';
+
+    try {
+
+        // Obtener el token de autenticación.
+        const token = getToken();
+
+        if (!token) {
+            throw new Error('No hay una sesión activa.');
+        }
+
+        // Enviar los cambios al servidor.
+        const result = await apiRequest('/api/perfil', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(perfil)
+        });
+
+        // Comprobar la respuesta.
+        if (result.status !== 'success') {
+            throw new Error(
+                result.message || 'No se han podido guardar los cambios.'
+            );
+        }
+
+        // Mostrar confirmación.
+        showMessage(
+            profileMessage,
+            result.message || 'Tus datos se han actualizado correctamente.',
+            'success'
+        );
+
+        // Recargar los datos actualizados desde el servidor.
+        await loadProfile();
+
+    } catch (error) {
+
+        console.error('Error al actualizar el perfil:', error);
+
+        // Gestionar una sesión caducada.
+        if (error.status === 401) {
+
+            clearToken();
+
+            alert('Tu sesión ha caducado. Inicia sesión nuevamente.');
+
+            window.location.href = '../index.html';
+
+            return;
+        }
+
+        // Gestionar los posibles errores.
+        let message = error.message || 'No se han podido guardar los cambios.';
+
+        if (error.status === 409) {
+            message = 'El correo electrónico ya está registrado por otro usuario.';
+        }
+
+        showMessage(profileMessage, message);
+
+    } finally {
+
+        // Restaurar el botón.
+        saveProfileButton.disabled = false;
+        saveProfileButton.textContent = 'Guardar cambios';
+
+    }
+
+}
+
+// Gestionar el envío del formulario de cambio de contraseña
+function handlePasswordSubmit(event) {
     event.preventDefault();
 
     showMessage(
         passwordMessage,
         'El cambio de contraseña todavía no está implementado.'
     );
-
 }
-
 
 /**
  * Inicializa la página de perfil.
