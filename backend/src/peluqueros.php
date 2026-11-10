@@ -14,24 +14,27 @@ function listarPeluqueros(): void
         // Solo los administradores pueden consultar el listado.
         requireAdmin($pdo);
 
-        $sql = "
-            SELECT
-                IDPeluquero,
-                Usuario,
-                Nombre,
-                Apellido1,
-                Apellido2,
-                Telefono,
-                Direccion,
-                Email,
-                Notas,
-                FK_rol,
-                FechaAlta,
-                FechaBaja,
-                baja
-            FROM PELUQUEROS
-            ORDER BY Nombre ASC, Apellido1 ASC
-        ";
+        $sql = $sql = "
+                        SELECT
+                            p.IDPeluquero,
+                            p.Usuario,
+                            p.Nombre,
+                            p.Apellido1,
+                            p.Apellido2,
+                            p.Telefono,
+                            p.Direccion,
+                            p.Email,
+                            p.Notas,
+                            p.FK_rol,
+                            r.rol AS NombreRol,
+                            p.FechaAlta,
+                            p.FechaBaja,
+                            p.baja
+                        FROM PELUQUEROS p
+                        INNER JOIN ROLES r ON p.FK_rol = r.IDRoles
+                        ORDER BY p.Nombre, p.Apellido1
+                    ";
+       
 
         $stmt = $pdo->query($sql);
         $peluqueros = $stmt->fetchAll();
@@ -718,6 +721,44 @@ function reactivarPeluquero(int $id): void
         response(500, [
             'status' => 'error',
             'message' => 'Error al reactivar el peluquero'
+        ]);
+    }
+}
+
+// Obtener los roles disponibles.
+function listarRoles(): void
+{
+    try {
+        $pdo = getPDO();
+
+        // Comprobar que el usuario es administrador.
+        requireAdmin($pdo);
+
+        // Consultar los roles disponibles.
+        $sql = "
+            SELECT
+                IDRoles,
+                rol
+            FROM ROLES
+            ORDER BY IDRoles
+        ";
+
+        $stmt = $pdo->query($sql);
+
+        $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        response(200, [
+            'status' => 'ok',
+            'total' => count($roles),
+            'roles' => $roles
+        ]);
+
+    } catch (PDOException $e) {
+        error_log('Error al listar los roles: ' . $e->getMessage());
+
+        response(500, [
+            'status' => 'error',
+            'message' => 'Error al obtener los roles'
         ]);
     }
 }

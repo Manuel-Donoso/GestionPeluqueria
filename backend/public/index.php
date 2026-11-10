@@ -171,6 +171,11 @@ if (
 ) {
     reactivarPeluquero((int) $matches[1]);
 }
+
+// Obtener los roles disponibles.
+if ($method === 'GET' && $path === '/api/roles') {
+    listarRoles();
+}
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================
