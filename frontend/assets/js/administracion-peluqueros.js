@@ -15,6 +15,12 @@ const filterRole = document.querySelector('#filter-role');
 // Mensajes de administración.
 const adminMessage = document.querySelector('#admin-message');
 
+// Buscador de peluqueros.
+const searchHairdresser = document.querySelector('#search-hairdresser');
+
+// Selector de estado.
+const filterStatus = document.querySelector('#filter-status');
+
 // ========================================
 // VARIABLES
 // ========================================
@@ -51,9 +57,12 @@ async function initializeAdministration() {
 
         // Cargar los roles y los peluqueros.
         await Promise.all([
-            loadRoles(),
-            loadHairdressers()
+        loadRoles(),
+        loadHairdressers()
         ]);
+
+// Inicializar los filtros.
+initializeFilters();
 
     } catch (error) {
 
@@ -154,23 +163,38 @@ async function loadHairdressers() {
 // MOSTRAR PELUQUEROS EN LA TABLA
 // ========================================
 
+
+// ========================================
+// MOSTRAR PELUQUEROS EN LA TABLA
+// ========================================
+
 function renderHairdressers() {
+
+    renderFilteredHairdressers(hairdressers);
+
+}
+
+// ========================================
+// MOSTRAR RESULTADOS FILTRADOS
+// ========================================
+
+function renderFilteredHairdressers(filteredHairdressers) {
 
     // Limpiar el contenido actual de la tabla.
     hairdressersList.replaceChildren();
 
     // Actualizar el contador.
     hairdresserCount.textContent =
-        `${hairdressers.length} usuarios`;
+        `${filteredHairdressers.length} de ${hairdressers.length} usuarios`;
 
-    // Comprobar si existen peluqueros.
-    if (hairdressers.length === 0) {
+    // Comprobar si existen resultados.
+    if (filteredHairdressers.length === 0) {
 
         const row = document.createElement('tr');
         const cell = document.createElement('td');
 
         cell.colSpan = 6;
-        cell.textContent = 'No hay peluqueros registrados';
+        cell.textContent = 'No se han encontrado peluqueros';
 
         row.appendChild(cell);
         hairdressersList.appendChild(row);
@@ -179,7 +203,7 @@ function renderHairdressers() {
     }
 
     // Crear una fila por cada peluquero.
-    hairdressers.forEach(hairdresser => {
+    filteredHairdressers.forEach(hairdresser => {
 
         const row = document.createElement('tr');
 
@@ -240,6 +264,23 @@ function renderHairdressers() {
 }
 
 // ========================================
+// EVENTOS DE LOS FILTROS
+// ========================================
+
+function initializeFilters() {
+
+    // Buscar mientras se escribe.
+    searchHairdresser.addEventListener('input', filterHairdressers);
+
+    // Filtrar por rol.
+    filterRole.addEventListener('change', filterHairdressers);
+
+    // Filtrar por estado.
+    filterStatus.addEventListener('change', filterHairdressers);
+
+}
+
+// ========================================
 // CREAR CELDAS DE LA TABLA
 // ========================================
 
@@ -262,6 +303,65 @@ function showAdminMessage(message, type) {
     adminMessage.textContent = message;
     adminMessage.className = `form-message ${type}`;
     adminMessage.hidden = false;
+
+}
+
+
+
+
+// ========================================
+// FILTRAR PELUQUEROS
+// ========================================
+
+function filterHairdressers() {
+
+    // Obtener los valores de los filtros.
+    const search = searchHairdresser.value.trim().toLowerCase();
+    const selectedRole = filterRole.value;
+    const selectedStatus = filterStatus.value;
+
+
+// ========================================
+// Filtrar los peluqueros según los criterios seleccionados
+// ========================================
+
+    // Filtrar los peluqueros.
+    const filteredHairdressers = hairdressers.filter(hairdresser => {
+
+        // Preparar el texto de búsqueda.
+        const fullName = [
+            hairdresser.Nombre,
+            hairdresser.Apellido1,
+            hairdresser.Apellido2,
+            hairdresser.Usuario,
+            hairdresser.Email
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        // Comprobar el texto introducido.
+        const matchesSearch = fullName.includes(search);
+
+        // Comprobar el rol seleccionado.
+        const matchesRole =
+            selectedRole === '' ||
+            String(hairdresser.FK_rol) === selectedRole;
+
+        // Comprobar el estado del peluquero.
+        const inactive =
+            Number(hairdresser.baja) === 1 ||
+            hairdresser.baja === true ||
+            hairdresser.FechaBaja !== null;
+
+        const matchesStatus =
+            selectedStatus === '' ||
+            (selectedStatus === 'activo' && !inactive) ||
+            (selectedStatus === 'baja' && inactive);
+
+        return matchesSearch && matchesRole && matchesStatus;
+
+    });
+
+    // Mostrar únicamente los resultados filtrados.
+    renderFilteredHairdressers(filteredHairdressers);
 
 }
 
