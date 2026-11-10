@@ -48,17 +48,15 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 
+
 /**
  * Comprueba el estado de la API y la base de datos.
+ *
+ * @returns {Promise<boolean>} Indica si la API está disponible.
  */
 async function checkApi() {
 
     const statusElement = document.querySelector('#status');
-
-    // Si la página no tiene indicador de estado, no hacemos nada.
-    if (!statusElement) {
-        return;
-    }
 
     try {
 
@@ -68,13 +66,25 @@ async function checkApi() {
             throw new Error('API o base de datos no disponible');
         }
 
-        statusElement.textContent = 'API y base de datos conectadas';
-        statusElement.className = 'status ok';
+        // Actualizar el indicador si existe en la página.
+        if (statusElement) {
+            statusElement.textContent = 'API y base de datos conectadas';
+            statusElement.className = 'status ok';
+        }
 
-    } catch {
+        return true;
 
-        statusElement.textContent = 'API no disponible';
-        statusElement.className = 'status error';
+    } catch (error) {
+
+        console.error('Error al comprobar la API:', error);
+
+        // Actualizar el indicador si existe en la página.
+        if (statusElement) {
+            statusElement.textContent = 'API no disponible';
+            statusElement.className = 'status error';
+        }
+
+        return false;
 
     }
 }

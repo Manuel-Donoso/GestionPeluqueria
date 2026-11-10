@@ -2,17 +2,20 @@
 <!doctype html>
 <html lang="es">
 <head>
+    <!-- Metadatos de configuración -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Política de seguridad -->
+    <!-- Política de Seguridad de Contenidos -->
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src http://127.0.0.1:8081; img-src 'self' data:;">
 
-    <title>Dashboard - Gestión de Peluquería</title>
+    <title>Panel de control - Gestión de Peluquería</title>
 
+    <!-- Hoja de estilos -->
     <link rel="stylesheet" href="assets/css/styles.css">
 
+    <!-- Scripts de la aplicación -->
     <script src="assets/js/api.js" defer></script>
     <script src="assets/js/auth.js" defer></script>
     <script src="assets/js/dashboard.js" defer></script>
@@ -21,73 +24,163 @@
 <body>
     <main class="shell">
 
-        <!-- CABECERA -->
+        <!-- Cabecera del Dashboard -->
         <header class="topbar">
+
             <div>
                 <p class="eyebrow">PANEL DE CONTROL</p>
-                <h1>Gestión de Peluquería</h1>
+          
                 <p class="muted">
-                    Base inicial de la aplicación de escritorio
+                    Administración y gestión de la peluquería.
                 </p>
             </div>
 
-            <span id="status" class="status">
-                Comprobando API…
-            </span>
+            <div>
+                <span id="status" class="status">
+                    Comprobando API…
+                </span>
+            </div>
+
         </header>
 
-        <!-- BIENVENIDA -->
-        <section class="welcome">
+
+        <!-- Información del usuario conectado -->
+        <section class="user-panel">
+
             <div>
-                <p class="eyebrow">BIENVENIDO/A</p>
+                <p class="eyebrow">SESIÓN ACTIVA</p>
 
                 <h2>
-                    Hola, <span id="usuario-nombre">usuario</span>.
+                    Bienvenido/a,
+                    <span id="usuario-nombre">Cargando usuario...</span>
                 </h2>
 
-                <p>
-                    Desde aquí podrás gestionar los diferentes apartados
-                    de la peluquería.
-                </p>
-
                 <p class="muted">
-                    Rol: <strong id="usuario-rol">Cargando...</strong>
+                    Perfil:
+                    <strong id="usuario-rol">Comprobando...</strong>
+                </p>
+            </div>
+
+            <div>
+                <button id="logout-button" type="button">
+                    Cerrar sesión
+                </button>
+            </div>
+
+        </section>
+
+
+        <!-- Mensaje de bienvenida -->
+        <section class="welcome">
+
+            <div>
+                <p class="eyebrow">GESTIÓN DIARIA</p>
+
+                <h2>Tu peluquería, organizada.</h2>
+
+                <p>
+                    Accede a los diferentes módulos para gestionar
+                    clientes, servicios, agenda y tratamientos.
                 </p>
             </div>
 
             <div class="scissors" aria-hidden="true">✂</div>
-        </section>
-
-        <!-- MÓDULOS -->
-        <section class="grid" aria-label="Módulos principales">
-
-            <article class="module" data-roles="1,2,3">
-                <span>01</span>
-                <h3>Mi perfil</h3>
-                <p>Consulta y modifica tus datos personales y contraseña.</p>
-            </article>
-
-            <article class="module" data-roles="1,2,3">
-                <span>02</span>
-                <h3>Clientes</h3>
-                <p>Gestión de clientes, fichas personales e historial.</p>
-            </article>
-
-            <article class="module" data-roles="1,3">
-                <span>03</span>
-                <h3>Servicios</h3>
-                <p>Administración del catálogo de servicios y precios.</p>
-            </article>
-
-            <article class="module" data-roles="1,3">
-                <span>04</span>
-                <h3>Peluqueros y alumnos</h3>
-                <p>Altas, bajas y gestión del personal.</p>
-            </article>
 
         </section>
 
-        <!-- PIE -->
+
+        <!-- Módulos principales -->
+        <section aria-label="Módulos de gestión">
+
+            <p class="eyebrow">MÓDULOS DE LA APLICACIÓN</p>
+
+            <div class="grid">
+
+                <!-- Perfil -->
+                <article class="module" data-roles="1,2,3" hidden>
+                    <span>01</span>
+                    <h3>Mi perfil</h3>
+                    <p>
+                        Consulta y modifica tus datos personales.
+                    </p>
+                </article>
+
+
+                <!-- Agenda -->
+                <article class="module" data-roles="1,2,3" hidden>
+                    <span>02</span>
+                    <h3>Agenda</h3>
+                    <p>
+                        Consulta y organiza las citas de la peluquería.
+                    </p>
+                </article>
+
+
+                <!-- Clientes -->
+                <article class="module" data-roles="1,2,3" hidden>
+                    <span>03</span>
+                    <h3>Clientes</h3>
+                    <p>
+                        Gestiona las fichas y el historial de clientes.
+                    </p>
+                </article>
+
+
+                <!-- Servicios -->
+                <article class="module" data-roles="1,3" hidden>
+                    <span>04</span>
+                    <h3>Servicios</h3>
+                    <p>
+                        Consulta y administra el catálogo de servicios y precios.
+                    </p>
+                </article>
+
+
+                <!-- Peluqueros y alumnos -->
+                <article class="module" data-roles="1,3" hidden>
+                    <span>05</span>
+                    <h3>Peluqueros y alumnos</h3>
+                    <p>
+                        Gestiona las altas, bajas y datos del personal.
+                    </p>
+                </article>
+
+
+                <!-- Fichas de tratamiento -->
+                <article class="module" data-roles="1,2,3" hidden>
+                    <span>06</span>
+                    <h3>Fichas de tratamiento</h3>
+                    <p>
+                        Consulta y registra análisis, fórmulas y tratamientos.
+                    </p>
+                </article>
+
+
+                <!-- Facturación -->
+                <article class="module" data-roles="1,2,3" hidden>
+                    <span>07</span>
+                    <h3>Facturación</h3>
+                    <p>
+                        Consulta y gestiona las facturas y operaciones.
+                    </p>
+                </article>
+
+
+                <!-- Gestión de usuarios -->
+                <article class="module" data-roles="1" hidden>
+                    <span>08</span>
+                    <h3>Gestión de usuarios</h3>
+                    <p>
+                        Administra las cuentas y los permisos de acceso.
+                    </p>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- Pie de página -->
         <footer>
             Proyecto local · PHP API · MariaDB · Electron
         </footer>
