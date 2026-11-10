@@ -268,15 +268,104 @@ async function handleProfileSubmit(event) {
 
 }
 
+
 // Gestionar el envío del formulario de cambio de contraseña
-function handlePasswordSubmit(event) {
+async function handlePasswordSubmit(event) {
     event.preventDefault();
 
-    showMessage(
-        passwordMessage,
-        'El cambio de contraseña todavía no está implementado.'
-    );
+    // Limpiar mensajes anteriores
+    hideMessage(passwordMessage);
+
+    // Obtener los valores del formulario
+    const passwordActual = document.querySelector('#password-actual').value;
+    const passwordNueva = document.querySelector('#password-nueva').value;
+    const confirmarPassword = document.querySelector('#confirmar-password').value;
+
+    // Validaciones básicas en el frontend
+    if (!passwordActual || !passwordNueva || !confirmarPassword) {
+        showMessage(passwordMessage, 'Debes completar todos los campos.');
+        return;
+    }
+
+    if (passwordNueva.length < 8) {
+        showMessage(passwordMessage, 'La nueva contraseña debe tener al menos 8 caracteres.');
+        return;
+    }
+
+    if (passwordNueva !== confirmarPassword) {
+        showMessage(passwordMessage, 'La nueva contraseña y su confirmación no coinciden.');
+        return;
+    }
+
+    // Deshabilitar el botón mientras se procesa la petición
+    changePasswordButton.disabled = true;
+    changePasswordButton.textContent = 'Actualizando...';
+
+    try {
+        const token = getToken();
+
+        if (!token) {
+            throw new Error('No hay una sesión activa.');
+        }
+
+        // Enviar la solicitud a la API
+        const result = await apiRequest('/api/perfil/password', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                password_actual: passwordActual,
+                password_nueva: passwordNueva,
+                confirmar_password: confirmarPassword
+            })
+        });
+
+        if (result.status !== 'success') {
+            throw new Error(result.message || 'No se ha podido cambiar la contraseña.');
+        }
+
+        // Limpiar los campos del formulario
+        passwordForm.reset();
+
+        // Informar del resultado
+        showMessage(
+            passwordMessage,
+            result.message || 'Contraseña actualizada correctamente.',
+            'success'
+        );
+
+        // El backend ha revocado todos los tokens.
+        // Eliminar el token local y volver al inicio de sesión.
+        clearToken();
+
+        // Dar tiempo a leer el mensaje antes de redirigir
+        setTimeout(() => {
+            window.location.href = '../index.html';
+        }, 2500);
+
+    } catch (error) {
+        console.error('Error al cambiar la contraseña:', error);
+
+        if (error.status === 401 || error.message === 'No hay una sesión activa.') {
+            clearToken();
+            alert('Tu sesión ha caducado. Inicia sesión nuevamente.');
+            window.location.href = '../index.html';
+            return;
+        }
+
+        showMessage(
+            passwordMessage,
+            error.message || 'No se ha podido cambiar la contraseña.'
+        );
+
+    } finally {
+        changePasswordButton.disabled = false;
+        changePasswordButton.textContent = 'Cambiar contraseña';
+    }
 }
+
 
 /**
  * Inicializa la página de perfil.
