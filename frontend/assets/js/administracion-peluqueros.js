@@ -198,42 +198,87 @@ function renderHairdressers() {
 
 }
 
+
+// ========================================
+// COMPROBAR ESTADO DEL PELUQUERO
+// ========================================
+
+/**
+ * Comprueba si un peluquero está dado de baja.
+ *
+ * Se considera inactivo si:
+ * - El campo baja tiene valor 1.
+ * - El campo baja es true.
+ * - Tiene una fecha de baja registrada.
+ *
+ * @param {Object} hairdresser - Datos del peluquero.
+ * @returns {boolean} True si está de baja, false si está activo.
+ */
+function isHairdresserInactive(hairdresser) {
+
+    return Number(hairdresser.baja) === 1 ||
+        hairdresser.baja === true ||
+        hairdresser.FechaBaja != null;
+
+}
+
+
 // ========================================
 // MOSTRAR RESULTADOS FILTRADOS
 // ========================================
 
+/**
+ * Muestra los peluqueros recibidos en la tabla.
+ *
+ * Genera una fila por cada peluquero y adapta las acciones
+ * disponibles dependiendo de si su cuenta está activa o de baja.
+ *
+ * @param {Array} filteredHairdressers - Lista de peluqueros filtrados.
+ */
 function renderFilteredHairdressers(filteredHairdressers) {
 
     // Limpiar el contenido actual de la tabla.
     hairdressersList.replaceChildren();
 
-    // Actualizar el contador.
+    // Actualizar el contador de resultados.
     hairdresserCount.textContent =
         `${filteredHairdressers.length} de ${hairdressers.length} usuarios`;
 
     // Comprobar si existen resultados.
     if (filteredHairdressers.length === 0) {
 
+        // Crear una fila para mostrar el mensaje.
         const row = document.createElement('tr');
         const cell = document.createElement('td');
 
+        // La celda ocupará las seis columnas de la tabla.
         cell.colSpan = 6;
         cell.textContent = 'No se han encontrado peluqueros';
 
+        // Añadir la fila a la tabla.
         row.appendChild(cell);
         hairdressersList.appendChild(row);
 
+        // Finalizar la función al no haber resultados.
         return;
+
     }
 
     // Crear una fila por cada peluquero.
     filteredHairdressers.forEach(hairdresser => {
 
+        // Crear una nueva fila.
         const row = document.createElement('tr');
 
-        // Nombre y apellidos.
+
+        // ----------------------------------------
+        // NOMBRE Y APELLIDOS
+        // ----------------------------------------
+
         const nameCell = document.createElement('td');
 
+        // Construir el nombre completo.
+        // Se eliminan los valores vacíos para evitar espacios innecesarios.
         nameCell.textContent = [
             hairdresser.Nombre,
             hairdresser.Apellido1,
@@ -242,50 +287,150 @@ function renderFilteredHairdressers(filteredHairdressers) {
 
         row.appendChild(nameCell);
 
-        // Nombre de usuario.
+
+        // ----------------------------------------
+        // NOMBRE DE USUARIO
+        // ----------------------------------------
+
         row.appendChild(
             createTableCell(hairdresser.Usuario)
         );
 
-        // Correo electrónico.
+
+        // ----------------------------------------
+        // CORREO ELECTRÓNICO
+        // ----------------------------------------
+
         row.appendChild(
             createTableCell(hairdresser.Email)
         );
 
-        // Rol.
+
+        // ----------------------------------------
+        // ROL DEL PELUQUERO
+        // ----------------------------------------
+
         row.appendChild(
             createTableCell(hairdresser.NombreRol)
         );
 
-        // Estado.
+
+        // ----------------------------------------
+        // ESTADO DE LA CUENTA
+        // ----------------------------------------
+
         const statusCell = document.createElement('td');
         const status = document.createElement('span');
 
-        const inactive =
-            Number(hairdresser.baja) === 1 ||
-            hairdresser.baja === true ||
-            hairdresser.FechaBaja !== null;
+        // Comprobar si el peluquero está dado de baja.
+        const inactive = isHairdresserInactive(hairdresser);
 
+        // Mostrar el estado correspondiente.
         status.textContent = inactive ? 'De baja' : 'Activo';
+
+        // Aplicar la clase CSS según el estado.
         status.className = inactive
             ? 'hairdresser-status inactive'
             : 'hairdresser-status active';
 
+        // Añadir el indicador de estado a la celda.
         statusCell.appendChild(status);
         row.appendChild(statusCell);
 
-        // Acciones (las implementaremos más adelante).
+
+        // ----------------------------------------
+        // ACCIONES DISPONIBLES
+        // ----------------------------------------
+
         const actionsCell = document.createElement('td');
 
-        actionsCell.textContent = 'Próximamente';
+        // Comprobar las acciones disponibles según el estado.
+        if (inactive) {
 
+            // ------------------------------------
+            // CUENTA DE BAJA
+            // ------------------------------------
+
+            // Crear el botón para reactivar la cuenta.
+            const reactivateButton = document.createElement('button');
+
+            reactivateButton.type = 'button';
+            reactivateButton.textContent = 'Reactivar';
+
+            // Aplicar las clases CSS.
+            reactivateButton.className =
+                'action-button reactivate-button';
+
+            // Guardar la acción y el identificador del peluquero.
+            // Estos datos permitirán identificar el botón al pulsarlo.
+            reactivateButton.dataset.action = 'reactivate';
+            reactivateButton.dataset.id = hairdresser.IDPeluquero;
+
+            // Añadir el botón a la celda de acciones.
+            actionsCell.appendChild(reactivateButton);
+
+        } else {
+
+            // ------------------------------------
+            // CUENTA ACTIVA
+            // ------------------------------------
+
+            // Crear el botón para dar de baja.
+            const deactivateButton = document.createElement('button');
+
+            deactivateButton.type = 'button';
+            deactivateButton.textContent = 'Dar de baja';
+
+            // Aplicar las clases CSS.
+            deactivateButton.className =
+                'action-button deactivate-button';
+
+            // Guardar la acción y el identificador del peluquero.
+            deactivateButton.dataset.action = 'deactivate';
+            deactivateButton.dataset.id = hairdresser.IDPeluquero;
+
+            // Añadir el botón a la celda de acciones.
+            actionsCell.appendChild(deactivateButton);
+
+
+            // ------------------------------------
+            // RESET DE CONTRASEÑA
+            // ------------------------------------
+
+            // Crear el botón para restablecer la contraseña.
+            const resetPasswordButton = document.createElement('button');
+
+            resetPasswordButton.type = 'button';
+            resetPasswordButton.textContent = 'Resetear contraseña';
+
+            // Aplicar las clases CSS.
+            resetPasswordButton.className =
+                'action-button reset-password-button';
+
+            // Guardar la acción y el identificador del peluquero.
+            resetPasswordButton.dataset.action = 'reset-password';
+            resetPasswordButton.dataset.id = hairdresser.IDPeluquero;
+
+            // Añadir el botón a la celda de acciones.
+            actionsCell.appendChild(resetPasswordButton);
+
+        }
+
+
+        // ----------------------------------------
+        // AÑADIR FILA A LA TABLA
+        // ----------------------------------------
+
+        // Añadir la celda de acciones a la fila.
         row.appendChild(actionsCell);
 
+        // Añadir la fila completa al cuerpo de la tabla.
         hairdressersList.appendChild(row);
 
     });
 
 }
+    
 
 // ========================================
 // EVENTOS DE LOS FILTROS
