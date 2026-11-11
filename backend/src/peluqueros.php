@@ -274,7 +274,7 @@ function crearPeluquero(): void
                 Email,
                 Notas,
                 PW,
-                Restarurar,
+                Restaurar,
                 FK_rol,
                 baja
             )

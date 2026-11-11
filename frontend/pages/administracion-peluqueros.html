@@ -110,6 +110,127 @@
 
         </section>
 
+
+        <!-- ========================================
+            MODAL: NUEVO PELUQUERO
+        ======================================== -->
+
+        <div id="hairdresser-modal" class="modal-overlay" hidden>
+
+            <section class="modal-card">
+
+                <div class="modal-header">
+                    <h2>Nuevo peluquero</h2>
+
+                    <button
+                        type="button"
+                        id="close-hairdresser-modal"
+                        class="modal-close"
+                        aria-label="Cerrar"
+                    >
+                        &times;
+                    </button>
+                </div>
+
+                <form id="hairdresser-form">
+
+                    <div class="form-grid">
+
+                        <div class="input-group">
+                            <label for="new-usuario">Usuario *</label>
+                            <input type="text" id="new-usuario" required maxlength="50">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-rol">Rol *</label>
+                            <select id="new-rol" required>
+                                <option value="">Selecciona un rol</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-nombre">Nombre *</label>
+                            <input type="text" id="new-nombre" required maxlength="100">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-apellido1">Primer apellido *</label>
+                            <input type="text" id="new-apellido1" required maxlength="100">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-apellido2">Segundo apellido</label>
+                            <input type="text" id="new-apellido2" maxlength="100">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-telefono">Teléfono</label>
+                            <input type="tel" id="new-telefono" maxlength="20">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-email">Correo electrónico</label>
+                            <input type="email" id="new-email" maxlength="150">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-direccion">Dirección</label>
+                            <input type="text" id="new-direccion" maxlength="255">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-password">Contraseña inicial *</label>
+                            <input
+                                type="password"
+                                id="new-password"
+                                required
+                                minlength="8"
+                                autocomplete="new-password"
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label for="new-password-confirm">Confirmar contraseña *</label>
+                            <input
+                                type="password"
+                                id="new-password-confirm"
+                                required
+                                minlength="8"
+                                autocomplete="new-password"
+                            >
+                        </div>
+
+                        <div class="input-group full-width">
+                            <label for="new-notas">Notas</label>
+                            <textarea id="new-notas" rows="3"></textarea>
+                        </div>
+
+                    </div>
+
+                    <div id="hairdresser-form-message"
+                        class="form-message"
+                        role="status"
+                        hidden>
+                    </div>
+
+                    <div class="modal-actions">
+
+                        <button type="button" id="cancel-hairdresser-button">
+                            Cancelar
+                        </button>
+
+                        <button type="submit" id="save-hairdresser-button">
+                            Registrar peluquero
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+        </div>
+
     </main>
 
 </body>

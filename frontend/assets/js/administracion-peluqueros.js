@@ -21,6 +21,18 @@ const searchHairdresser = document.querySelector('#search-hairdresser');
 // Selector de estado.
 const filterStatus = document.querySelector('#filter-status');
 
+// Modal de nuevo peluquero.
+const hairdresserModal = document.querySelector('#hairdresser-modal');
+const newHairdresserButton = document.querySelector('#new-hairdresser-button');
+const closeHairdresserModal = document.querySelector('#close-hairdresser-modal');
+const cancelHairdresserButton = document.querySelector('#cancel-hairdresser-button');
+
+// Formulario de nuevo peluquero.
+const hairdresserForm = document.querySelector('#hairdresser-form');
+const newRole = document.querySelector('#new-rol');
+const hairdresserFormMessage = document.querySelector('#hairdresser-form-message');
+const saveHairdresserButton = document.querySelector('#save-hairdresser-button');
+
 // ========================================
 // VARIABLES
 // ========================================
@@ -61,17 +73,18 @@ async function initializeAdministration() {
         loadHairdressers()
         ]);
 
-// Inicializar los filtros.
-initializeFilters();
+    // Inicializar los filtros.
+    initializeFilters();
+    // Inicializar el modal de nuevo peluquero.
+    initializeHairdresserModal();       
+        } catch (error) {
 
-    } catch (error) {
+            console.error('Error al inicializar la administración:', error);
 
-        console.error('Error al inicializar la administración:', error);
-
-        if (error.status === 401 || error.message === 'No hay una sesión activa') {
-            window.location.href = '../index.html';
-            return;
-        }
+            if (error.status === 401 || error.message === 'No hay una sesión activa') {
+                window.location.href = '../index.html';
+                return;
+            }
 
         showAdminMessage(
             error.message || 'No se ha podido cargar la administración',
@@ -104,15 +117,24 @@ async function loadRoles() {
 
         roles = result.roles;
 
-        // Añadir los roles al selector.
+        // Añadir los roles a los selectores.
         roles.forEach(role => {
 
-            const option = document.createElement('option');
+            // Opción para el filtro.
+            const filterOption = document.createElement('option');
 
-            option.value = role.IDRoles;
-            option.textContent = role.rol;
+            filterOption.value = role.IDRoles;
+            filterOption.textContent = role.rol;
 
-            filterRole.appendChild(option);
+            filterRole.appendChild(filterOption);
+
+            // Opción para el formulario de alta.
+            const formOption = document.createElement('option');
+
+            formOption.value = role.IDRoles;
+            formOption.textContent = role.rol;
+
+            newRole.appendChild(formOption);
 
         });
 
@@ -122,7 +144,9 @@ async function loadRoles() {
         throw error;
 
     }
+
 }
+
 
 // ========================================
 // CARGAR PELUQUEROS
@@ -364,6 +388,213 @@ function filterHairdressers() {
     renderFilteredHairdressers(filteredHairdressers);
 
 }
+
+
+// ========================================
+// MODAL DE NUEVO PELUQUERO
+// ========================================
+
+// Abrir el formulario.
+function openHairdresserModal() {
+
+    hairdresserForm.reset();
+
+    hairdresserFormMessage.hidden = true;
+
+    hairdresserModal.hidden = false;
+
+}
+
+// Cerrar el formulario.
+function closeHairdresserModalWindow() {
+
+    hairdresserModal.hidden = true;
+
+    hairdresserForm.reset();
+
+    hairdresserFormMessage.hidden = true;
+
+}
+
+// Registrar los eventos del modal.
+function initializeHairdresserModal() {
+
+    newHairdresserButton.addEventListener(
+        'click',
+        openHairdresserModal
+    );
+
+    closeHairdresserModal.addEventListener(
+        'click',
+        closeHairdresserModalWindow
+    );
+
+    cancelHairdresserButton.addEventListener(
+        'click',
+        closeHairdresserModalWindow
+    );
+
+        // Registrar un nuevo peluquero.
+    hairdresserForm.addEventListener(
+        'submit',
+        handleHairdresserSubmit
+    );  
+
+}
+
+
+// ========================================
+// REGISTRAR NUEVO PELUQUERO
+// ========================================
+
+async function handleHairdresserSubmit(event) {
+
+     console.log('Se ha ejecutado el evento submit');
+
+    // Evitar el envío tradicional del formulario.
+    event.preventDefault();
+
+    // Obtener los valores del formulario.
+    const password = document.querySelector('#new-password').value;
+    const passwordConfirm = document.querySelector('#new-password-confirm').value;
+
+    // Comprobar que las contraseñas coinciden.
+    if (password !== passwordConfirm) {
+
+        showHairdresserFormMessage(
+            'Las contraseñas no coinciden',
+            'error'
+        );
+
+        return;
+    }
+
+    // Comprobar la longitud mínima.
+    if (password.length < 8) {
+
+        showHairdresserFormMessage(
+            'La contraseña debe tener al menos 8 caracteres',
+            'error'
+        );
+
+        return;
+    }
+
+    // Preparar los datos del nuevo peluquero.
+    const hairdresserData = {
+
+        Usuario: document.querySelector('#new-usuario').value.trim(),
+
+        Nombre: document.querySelector('#new-nombre').value.trim(),
+
+        Apellido1: document.querySelector('#new-apellido1').value.trim(),
+
+        Apellido2: document.querySelector('#new-apellido2').value.trim(),
+
+        Telefono: document.querySelector('#new-telefono').value.trim(),
+
+        Email: document.querySelector('#new-email').value.trim(),
+
+        Direccion: document.querySelector('#new-direccion').value.trim(),
+
+        Notas: document.querySelector('#new-notas').value.trim(),
+
+        PW: password,
+
+        FK_rol: newRole.value
+
+    };
+
+    // Evitar envíos repetidos.
+    saveHairdresserButton.disabled = true;
+    saveHairdresserButton.textContent = 'Registrando...';
+
+    hairdresserFormMessage.hidden = true;
+
+    try {
+
+        // Obtener el token de sesión.
+        const token = getToken();
+
+        if (!token) {
+            throw new Error('No hay una sesión activa');
+        }
+
+        // Enviar los datos a la API.
+        const result = await apiRequest('/api/peluqueros', {
+
+            method: 'POST',
+
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(hairdresserData)
+
+        });
+
+        if (result.status !== 'ok') {
+            throw new Error(
+                result.message || 'No se ha podido registrar el peluquero'
+            );
+        }
+
+        // Cerrar y limpiar el formulario.
+        closeHairdresserModalWindow();
+
+        // Mostrar el mensaje de éxito.
+        showAdminMessage(
+            'El peluquero se ha registrado correctamente',
+            'success'
+        );
+
+        // Actualizar el listado.
+        await loadHairdressers();
+
+        // Volver a aplicar los filtros actuales.
+        filterHairdressers();
+
+    } catch (error) {
+
+        console.error('Error al registrar el peluquero:', error);
+
+        // Si la sesión ha caducado, volver al login.
+        if (error.status === 401) {
+            clearToken();
+            window.location.href = '../index.html';
+            return;
+        }
+
+        showHairdresserFormMessage(
+            error.message || 'Error al registrar el peluquero',
+            'error'
+        );
+
+    } finally {
+
+        // Recuperar el botón.
+        saveHairdresserButton.disabled = false;
+        saveHairdresserButton.textContent = 'Registrar peluquero';
+
+    }
+console.log('Modal inicializado correctamente');
+}
+
+// ========================================
+// MOSTRAR MENSAJES DEL FORMULARIO
+// ========================================
+
+function showHairdresserFormMessage(message, type) {
+
+    hairdresserFormMessage.textContent = message;
+    hairdresserFormMessage.className = `form-message ${type}`;
+    hairdresserFormMessage.hidden = false;
+
+}
+
+
+
 
 // ========================================
 // INICIALIZAR PÁGINA

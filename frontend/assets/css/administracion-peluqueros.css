@@ -273,3 +273,246 @@
     }
 
 }
+
+
+
+/* ========================================
+   MODAL
+======================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+
+    /* Fondo oscuro sólido para el fondo de la página */
+    background-color: rgba(0, 0, 0, 0.85);
+
+    overflow-y: auto;
+}
+
+.modal-overlay[hidden] {
+    display: none;
+}
+
+/* ========================================
+   TARJETA DEL MODAL
+======================================== */
+
+.modal-card {
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    padding: 30px;
+
+    /* Fondo completamente opaco */
+    background-color: #20232b;
+
+    border: 1px solid #3a3f4b;
+    border-radius: 12px;
+
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ========================================
+   CABECERA
+======================================== */
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+
+    border-bottom: 1px solid #3a3f4b;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #ffffff;
+}
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border: none;
+    border-radius: 6px;
+
+    background-color: #303540;
+    color: #ffffff;
+
+    font-size: 26px;
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+}
+
+.modal-close:hover {
+    background-color: #e74c3c;
+}
+
+/* ========================================
+   FORMULARIO
+======================================== */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-grid .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-grid label {
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 12px;
+
+    border: 1px solid #454b59;
+    border-radius: 6px;
+
+    background-color: #151820;
+    color: #ffffff;
+
+    font: inherit;
+
+    transition: border-color 0.2s ease;
+}
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.form-grid input::placeholder,
+.form-grid textarea::placeholder {
+    color: #858b98;
+}
+
+.form-grid select option {
+    background-color: #151820;
+    color: #ffffff;
+}
+
+.form-grid textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* ========================================
+   BOTONES DEL FORMULARIO
+======================================== */
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    margin-top: 30px;
+    padding-top: 20px;
+
+    border-top: 1px solid #3a3f4b;
+}
+
+.modal-actions button {
+    padding: 12px 20px;
+
+    border: 1px solid #454b59;
+    border-radius: 6px;
+
+    background-color: #303540;
+    color: #ffffff;
+
+    font-weight: 500;
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+}
+
+.modal-actions button:hover {
+    background-color: #414754;
+}
+
+.modal-actions button[type="submit"] {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.modal-actions button[type="submit"]:hover {
+    filter: brightness(1.1);
+}
+
+.modal-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 600px) {
+
+    .modal-overlay {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .modal-card {
+        margin: auto 0;
+        padding: 20px;
+        max-height: 95vh;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width {
+        grid-column: auto;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal-actions button {
+        width: 100%;
+    }
+
+}
