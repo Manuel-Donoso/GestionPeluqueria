@@ -221,6 +221,10 @@ function initializeHairdresserActions() {
 }
 
 
+// ========================================
+// GESTIONAR ACCIONES DE LOS PELUQUEROS
+// ========================================
+
 /**
  * Identifica qué acción ha solicitado el administrador.
  *
@@ -243,11 +247,18 @@ function handleHairdresserAction(event) {
     // Ejecutar la acción correspondiente.
     if (action === 'deactivate') {
 
+        // Dar de baja al peluquero.
         deactivateHairdresser(hairdresserId, button);
+
+    } else if (action === 'reactivate') {
+
+        // Reactivar la cuenta del peluquero.
+        reactivateHairdresser(hairdresserId, button);
 
     }
 
 }
+
 
 // ========================================
 // DAR DE BAJA A UN PELUQUERO
@@ -377,6 +388,134 @@ async function deactivateHairdresser(hairdresserId, button) {
 
 }
 
+
+// ========================================
+// REACTIVAR CUENTA DE UN PELUQUERO
+// ========================================
+
+/**
+ * Reactiva la cuenta de un peluquero que estaba de baja.
+ *
+ * Solicita confirmación al administrador y envía
+ * una petición PATCH a la API.
+ *
+ * @param {number|string} hairdresserId - ID del peluquero.
+ * @param {HTMLButtonElement} button - Botón pulsado.
+ */
+async function reactivateHairdresser(hairdresserId, button) {
+
+    // Buscar los datos del peluquero seleccionado.
+    const hairdresser = hairdressers.find(
+        item => String(item.IDPeluquero) === String(hairdresserId)
+    );
+
+    // Comprobar que el peluquero existe.
+    if (!hairdresser) {
+
+        showAdminMessage(
+            'No se ha encontrado el peluquero seleccionado',
+            'error'
+        );
+
+        return;
+
+    }
+
+    // Preparar el nombre completo.
+    const fullName = [
+        hairdresser.Nombre,
+        hairdresser.Apellido1,
+        hairdresser.Apellido2
+    ].filter(Boolean).join(' ');
+
+    // Solicitar confirmación al administrador.
+    const confirmed = window.confirm(
+        `¿Estás seguro de que quieres reactivar la cuenta de ${fullName}?\n\n` +
+        'El peluquero volverá a tener acceso a la aplicación.'
+    );
+
+    // Cancelar la operación si no se confirma.
+    if (!confirmed) {
+        return;
+    }
+
+    // Desactivar temporalmente el botón.
+    button.disabled = true;
+    button.textContent = 'Procesando...';
+
+    try {
+
+        // Obtener el token de sesión.
+        const token = getToken();
+
+        if (!token) {
+            throw new Error('No hay una sesión activa');
+        }
+
+        // Enviar la petición a la API.
+        const result = await apiRequest(
+            `/api/peluqueros/${hairdresserId}/reactivar`,
+            {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        // Comprobar el resultado de la operación.
+        if (result.status !== 'ok') {
+
+            throw new Error(
+                result.message || 'No se ha podido reactivar la cuenta'
+            );
+
+        }
+
+        // Mostrar el mensaje de confirmación.
+        showAdminMessage(
+            `La cuenta de ${fullName} ha sido reactivada correctamente`,
+            'success'
+        );
+
+        // Actualizar los datos de la tabla.
+        await loadHairdressers();
+
+        // Volver a aplicar los filtros actuales.
+        filterHairdressers();
+
+    } catch (error) {
+
+        console.error('Error al reactivar la cuenta:', error);
+
+        // Si la sesión ha caducado, volver al login.
+        if (error.status === 401) {
+
+            clearToken();
+            window.location.href = '../index.html';
+
+            return;
+
+        }
+
+        // Mostrar el error al administrador.
+        showAdminMessage(
+            error.message || 'Error al reactivar la cuenta',
+            'error'
+        );
+
+    } finally {
+
+        // Recuperar el botón si todavía existe en el documento.
+        button.disabled = false;
+
+        if (button.isConnected) {
+            button.textContent = 'Reactivar';
+        }
+
+    }
+
+}
 
 // ========================================
 // COMPROBAR ESTADO DEL PELUQUERO
