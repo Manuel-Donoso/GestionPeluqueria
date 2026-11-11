@@ -91,6 +91,8 @@ async function initializeAdministration() {
             'error'
         );
     }
+    // Inicializar las acciones de los peluqueros.
+    initializeHairdresserActions();
 }
 
 // ========================================
@@ -195,6 +197,183 @@ async function loadHairdressers() {
 function renderHairdressers() {
 
     renderFilteredHairdressers(hairdressers);
+
+}
+
+
+// ========================================
+// EVENTOS DE LAS ACCIONES DE LOS PELUQUEROS
+// ========================================
+
+/**
+ * Inicializa los eventos de los botones de acciones.
+ *
+ * Utilizamos delegación de eventos porque los botones
+ * se generan dinámicamente al mostrar la tabla.
+ */
+function initializeHairdresserActions() {
+
+    hairdressersList.addEventListener(
+        'click',
+        handleHairdresserAction
+    );
+
+}
+
+
+/**
+ * Identifica qué acción ha solicitado el administrador.
+ *
+ * @param {Event} event - Evento de clic.
+ */
+function handleHairdresserAction(event) {
+
+    // Obtener el botón pulsado.
+    const button = event.target.closest('button[data-action]');
+
+    // Comprobar que se ha pulsado un botón de acción.
+    if (!button || !hairdressersList.contains(button)) {
+        return;
+    }
+
+    // Obtener la acción y el identificador del peluquero.
+    const action = button.dataset.action;
+    const hairdresserId = button.dataset.id;
+
+    // Ejecutar la acción correspondiente.
+    if (action === 'deactivate') {
+
+        deactivateHairdresser(hairdresserId, button);
+
+    }
+
+}
+
+// ========================================
+// DAR DE BAJA A UN PELUQUERO
+// ========================================
+
+/**
+ * Desactiva la cuenta de un peluquero.
+ *
+ * Solicita confirmación al administrador y envía
+ * una petición PATCH a la API.
+ *
+ * @param {number|string} hairdresserId - ID del peluquero.
+ * @param {HTMLButtonElement} button - Botón pulsado.
+ */
+async function deactivateHairdresser(hairdresserId, button) {
+
+    // Buscar los datos del peluquero seleccionado.
+    const hairdresser = hairdressers.find(
+        item => String(item.IDPeluquero) === String(hairdresserId)
+    );
+
+    // Comprobar que el peluquero existe.
+    if (!hairdresser) {
+
+        showAdminMessage(
+            'No se ha encontrado el peluquero seleccionado',
+            'error'
+        );
+
+        return;
+
+    }
+
+    // Preparar el nombre completo para la confirmación.
+    const fullName = [
+        hairdresser.Nombre,
+        hairdresser.Apellido1,
+        hairdresser.Apellido2
+    ].filter(Boolean).join(' ');
+
+    // Solicitar confirmación al administrador.
+    const confirmed = window.confirm(
+        `¿Estás seguro de que quieres dar de baja a ${fullName}?\n\n` +
+        'La cuenta dejará de estar disponible, pero sus datos se conservarán.'
+    );
+
+    // Cancelar la operación si no se confirma.
+    if (!confirmed) {
+        return;
+    }
+
+    // Desactivar temporalmente el botón.
+    button.disabled = true;
+    button.textContent = 'Procesando...';
+
+    try {
+
+        // Obtener el token de sesión.
+        const token = getToken();
+
+        if (!token) {
+            throw new Error('No hay una sesión activa');
+        }
+
+        // Enviar la petición a la API.
+        const result = await apiRequest(
+            `/api/peluqueros/${hairdresserId}/baja`,
+            {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        // Comprobar el resultado de la operación.
+        if (result.status !== 'ok') {
+
+            throw new Error(
+                result.message || 'No se ha podido dar de baja al peluquero'
+            );
+
+        }
+
+        // Mostrar el mensaje de confirmación.
+        showAdminMessage(
+            `El peluquero ${fullName} ha sido dado de baja correctamente`,
+            'success'
+        );
+
+        // Actualizar los datos de la tabla.
+        await loadHairdressers();
+
+        // Volver a aplicar los filtros actuales.
+        filterHairdressers();
+
+    } catch (error) {
+
+        console.error('Error al dar de baja al peluquero:', error);
+
+        // Si la sesión ha caducado, volver al login.
+        if (error.status === 401) {
+
+            clearToken();
+            window.location.href = '../index.html';
+
+            return;
+
+        }
+
+        // Mostrar el error al administrador.
+        showAdminMessage(
+            error.message || 'Error al dar de baja al peluquero',
+            'error'
+        );
+
+    } finally {
+
+        // Recuperar el botón si todavía existe en el documento.
+        button.disabled = false;
+
+        if (button.isConnected) {
+            button.textContent = 'Dar de baja';
+        }
+
+    }
 
 }
 
@@ -488,7 +667,7 @@ function filterHairdressers() {
     const search = searchHairdresser.value.trim().toLowerCase();
     const selectedRole = filterRole.value;
     const selectedStatus = filterStatus.value;
-
+    
 
 // ========================================
 // Filtrar los peluqueros según los criterios seleccionados
