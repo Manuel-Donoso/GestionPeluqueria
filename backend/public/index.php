@@ -172,6 +172,14 @@ if (
     reactivarPeluquero((int) $matches[1]);
 }
 
+// PATCH /api/peluqueros/{id}/reset-password
+if (
+    $method === 'PATCH'
+    && preg_match('#^/api/peluqueros/(\d+)/reset-password$#', $path, $matches)
+) {
+    resetearPasswordPeluquero((int) $matches[1]);
+}
+
 // Obtener los roles disponibles.
 if ($method === 'GET' && $path === '/api/roles') {
     listarRoles();

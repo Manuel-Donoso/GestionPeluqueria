@@ -762,3 +762,141 @@ function listarRoles(): void
         ]);
     }
 }
+
+
+/**
+ * Resetea la contraseña de un peluquero.
+ *
+ * Genera una contraseña temporal aleatoria, guarda su hash
+ * y activa Restaurar para obligar al usuario a cambiarla.
+ */
+function resetearPasswordPeluquero(int $id): void
+{
+    try {
+        $pdo = getPDO();
+
+        // Solo los administradores pueden resetear contraseñas.
+        requireAdmin($pdo);
+
+        // Comprobar que el identificador es válido.
+        if ($id <= 0) {
+            response(400, [
+                'status' => 'error',
+                'message' => 'El identificador del peluquero no es válido'
+            ]);
+        }
+
+        // Buscar al peluquero y comprobar su estado.
+        $stmt = $pdo->prepare("
+            SELECT
+                IDPeluquero,
+                baja,
+                FechaBaja
+            FROM PELUQUEROS
+            WHERE IDPeluquero = :id
+            LIMIT 1
+        ");
+
+        $stmt->execute(['id' => $id]);
+
+        $peluquero = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Comprobar que existe.
+        if (!$peluquero) {
+            response(404, [
+                'status' => 'error',
+                'message' => 'No se ha encontrado el peluquero'
+            ]);
+        }
+
+        // No permitir resetear cuentas inactivas.
+        if (
+            (bool) $peluquero['baja']
+            || $peluquero['FechaBaja'] !== null
+        ) {
+            response(409, [
+                'status' => 'error',
+                'message' => 'No se puede resetear la contraseña de un peluquero dado de baja'
+            ]);
+        }
+
+        // Generar una contraseña temporal aleatoria de 24 caracteres.
+        // Se utiliza hexadecimal para facilitar su lectura y escritura.
+        $passwordTemporal = bin2hex(random_bytes(12));
+
+        // Generar el hash que se almacenará en la base de datos.
+        $passwordHash = password_hash(
+            $passwordTemporal,
+            PASSWORD_DEFAULT
+        );
+
+        // Comprobar que el hash se ha generado correctamente.
+        if ($passwordHash === false) {
+            response(500, [
+                'status' => 'error',
+                'message' => 'No se ha podido generar la nueva contraseña'
+            ]);
+        }
+
+        // Actualizar la contraseña y activar el cambio obligatorio.
+        // La condición adicional evita modificar una cuenta
+        // que haya sido dada de baja durante la operación.
+        $stmt = $pdo->prepare("
+            UPDATE PELUQUEROS
+            SET
+                PW = :password,
+                Restaurar = 1
+            WHERE
+                IDPeluquero = :id
+                AND baja = 0
+                AND FechaBaja IS NULL
+        ");
+
+        $stmt->execute([
+            'password' => $passwordHash,
+            'id' => $id
+        ]);
+
+        // Comprobar que se ha actualizado el registro.
+        if ($stmt->rowCount() !== 1) {
+            response(409, [
+                'status' => 'error',
+                'message' => 'No se ha podido resetear la contraseña. Comprueba que la cuenta sigue activa'
+            ]);
+        }
+
+        // Devolver la contraseña temporal al administrador.
+        // No se almacena en texto plano en la base de datos.
+        response(200, [
+            'status' => 'ok',
+            'message' => 'La contraseña se ha reseteado correctamente',
+            'id' => $id,
+            'passwordTemporal' => $passwordTemporal,
+            'requiereCambioPassword' => true
+        ]);
+
+    } catch (PDOException $e) {
+        // Registrar el error técnico sin exponer información sensible.
+        error_log(
+            'Error de base de datos al resetear contraseña: '
+            . $e->getMessage()
+        );
+
+        response(500, [
+            'status' => 'error',
+            'message' => 'Error al resetear la contraseña'
+        ]);
+
+    } catch (Throwable $e) {
+        // Capturar otros errores, por ejemplo, al generar bytes aleatorios.
+        error_log(
+            'Error al generar contraseña temporal: '
+            . $e->getMessage()
+        );
+
+        response(500, [
+            'status' => 'error',
+            'message' => 'No se ha podido generar la contraseña temporal'
+        ]);
+    }
+}

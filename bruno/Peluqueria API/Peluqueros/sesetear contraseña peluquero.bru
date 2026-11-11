@@ -1,0 +1,20 @@
+meta {
+  name: sesetear contraseña peluquero
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/api/peluqueros/2/reactivar
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
