@@ -1,4 +1,3 @@
-
 // ========================================
 // ELEMENTOS DEL DOM
 // ========================================
@@ -255,6 +254,8 @@ function handleHairdresserAction(event) {
         // Reactivar la cuenta del peluquero.
         reactivateHairdresser(hairdresserId, button);
 
+    } else if (action === 'reset-password') {
+        resetHairdresserPassword(hairdresserId, button);   
     }
 
 }
@@ -1056,7 +1057,125 @@ function showHairdresserFormMessage(message, type) {
 
 }
 
+// ========================================
+// RESETEAR CONTRASEÑA DE UN PELUQUERO
+// ========================================
 
+/**
+ * Solicita confirmación al administrador y restablece
+ * la contraseña del peluquero, mostrando la contraseña
+ * temporal devuelta por la API.
+ *
+ * @param {number|string} hairdresserId - ID del peluquero.
+ * @param {HTMLButtonElement} button - Botón pulsado.
+ */
+async function resetHairdresserPassword(hairdresserId, button) {
+
+    // Buscar los datos del peluquero.
+    const hairdresser = hairdressers.find(
+        item => String(item.IDPeluquero) === String(hairdresserId)
+    );
+
+    if (!hairdresser) {
+        showAdminMessage(
+            'No se ha encontrado el peluquero seleccionado',
+            'error'
+        );
+        return;
+    }
+
+    const fullName = [
+        hairdresser.Nombre,
+        hairdresser.Apellido1,
+        hairdresser.Apellido2
+    ].filter(Boolean).join(' ');
+
+    // Ventana de confirmación previa.
+    const confirmed = window.confirm(
+        `¿Estás seguro de que quieres resetear la contraseña de ${fullName}?\n\n` +
+        'Se generará una contraseña temporal que deberás comunicarle. ' +
+        'La contraseña actual dejará de funcionar.'
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    // Bloquear el botón mientras se procesa.
+    button.disabled = true;
+    button.textContent = 'Reseteando...';
+
+    try {
+
+        const token = getToken();
+
+        if (!token) {
+            throw new Error('No hay una sesión activa');
+        }
+
+        // Petición PATCH al endpoint de reset.
+        const result = await apiRequest(
+            `/api/peluqueros/${hairdresserId}/reset-password`,
+            {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (result.status !== 'ok') {
+            throw new Error(
+                result.message || 'No se ha podido resetear la contraseña'
+            );
+        }
+
+        // La API devuelve la contraseña temporal en "passwordTemporal".
+        const temporaryPassword = result.passwordTemporal;
+
+        if (!temporaryPassword) {
+            throw new Error(
+                'La API no ha devuelto la contraseña temporal'
+            );
+        }
+
+        // Mostrar la contraseña temporal al administrador.
+        window.alert(
+            `Contraseña restablecida correctamente para ${fullName}.\n\n` +
+            `Contraseña temporal: ${temporaryPassword}\n\n` +
+            'Comunícasela al peluquero. Deberá cambiarla en su próximo inicio de sesión.'
+        );
+
+        showAdminMessage(
+            result.message ||
+            `Contraseña de ${fullName} restablecida correctamente`,
+            'success'
+        );
+
+    } catch (error) {
+
+        console.error('Error al resetear la contraseña:', error);
+
+        if (error.status === 401) {
+            clearToken();
+            window.location.href = '../index.html';
+            return;
+        }
+
+        showAdminMessage(
+            error.message || 'Error al resetear la contraseña',
+            'error'
+        );
+
+    } finally {
+
+        button.disabled = false;
+
+        if (button.isConnected) {
+            button.textContent = 'Resetear contraseña';
+        }
+    }
+}
 
 
 // ========================================
