@@ -1,7 +1,3 @@
-// Comprobar la API al cargar el script.
-console.log('LOGIN.JS SE HA CARGADO')
-checkApi();
-console.log('LOGIN.JS SE HA CARGADO');
 
 /**
  * Elementos del formulario de inicio de sesión.
@@ -97,6 +93,19 @@ async function handleLogin(event) {
 
         // Guardar el token mediante auth.js.
         saveToken(result.token);
+
+// Comprobar si el usuario debe restablecer su contraseña.
+        if (result.action === 'password_reset_required') {
+
+            // Guardar el token temporal para utilizarlo en el restablecimiento.
+            sessionStorage.setItem('password_reset_token', result.token);
+
+            // Redirigir a la página de restablecimiento.
+            window.location.href = 'pages/restablecer-password.html';
+
+            return;
+        }
+
 
         // Acceder al panel principal.
         window.location.href = 'dashboard.html';
