@@ -94,11 +94,16 @@ async function handleLogin(event) {
         // Guardar el token mediante auth.js.
         saveToken(result.token);
 
-// Comprobar si el usuario debe restablecer su contraseña.
+
+        // Comprobar si el usuario debe restablecer su contraseña.
         if (result.action === 'password_reset_required') {
 
-            // Guardar el token temporal para utilizarlo en el restablecimiento.
-            sessionStorage.setItem('password_reset_token', result.token);
+            // Guardar el token temporal con la misma clave
+            // que utiliza la página de restablecimiento.
+            sessionStorage.setItem(
+                'peluqueria_reset_token',
+                result.token
+            );
 
             // Redirigir a la página de restablecimiento.
             window.location.href = 'pages/restablecer-password.html';
