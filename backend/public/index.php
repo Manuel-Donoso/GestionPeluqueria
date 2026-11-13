@@ -184,6 +184,14 @@ if (
 if ($method === 'GET' && $path === '/api/roles') {
     listarRoles();
 }
+
+// PUT /api/password-reset
+// Restablecer contraseña mediante un token temporal.
+if ($method === 'PUT' && $path === '/api/password-reset') {
+    cambiarPasswordRestablecimiento();
+}
+
+    
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================
