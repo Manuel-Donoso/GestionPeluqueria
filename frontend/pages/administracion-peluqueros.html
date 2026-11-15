@@ -278,6 +278,28 @@
           </form>
         </section>
       </div>
+
+      <!-- ========================================
+            Modal para informar de errores al dar de baja
+        ======================================== -->
+
+      <dialog id="deactivate-error-modal" class="admin-modal">
+        <div class="modal-content">
+          <h2>No se puede realizar la operación</h2>
+
+          <p id="deactivate-error-message">
+            No se puede dar de baja al último administrador activo. Debe existir
+            al menos otro administrador activo.
+          </p>
+
+          <!-- El formulario cierra automáticamente el modal -->
+          <form method="dialog" class="modal-actions">
+            <button type="submit" id="close-deactivate-error-modal">
+              Aceptar
+            </button>
+          </form>
+        </div>
+      </dialog>
     </main>
   </body>
 </html>

@@ -583,4 +583,45 @@
   .modal-actions button {
     width: 100%;
   }
+
+  /* Fondo oscurecido detrás del modal */
+  .admin-modal::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  /* Contenedor del modal */
+  .admin-modal {
+    border: none;
+    border-radius: 10px;
+    padding: 0;
+    max-width: 450px;
+    width: 90%;
+  }
+
+  /* Contenido */
+  .admin-modal .modal-content {
+    padding: 25px;
+  }
+
+  .admin-modal h2 {
+    margin-top: 0;
+  }
+
+  .admin-modal p {
+    line-height: 1.5;
+  }
+
+  /* Botones */
+  .admin-modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  .admin-modal button {
+    padding: 9px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
 }

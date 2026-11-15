@@ -358,7 +358,16 @@ async function deactivateHairdresser(hairdresserId, button) {
       return;
     }
 
-    // Mostrar el error al administrador.
+    // Comprobar si se ha intentado dar de baja al último administrador.
+    if (
+      error.status === 409 &&
+      error.message.includes("último administrador")
+    ) {
+      showDeactivateErrorModal();
+      return;
+    }
+
+    // Mostrar cualquier otro error al administrador.
     showAdminMessage(
       error.message || "Error al dar de baja al peluquero",
       "error",
@@ -1331,6 +1340,33 @@ function showChangeRoleMessage(message, type) {
   changeRoleMessage.hidden = false;
 }
 
+/**
+ * Muestra el modal de error al intentar dar de baja
+ * al último administrador activo.
+ */
+function showDeactivateErrorModal() {
+  const modal = document.querySelector("#deactivate-error-modal");
+
+  if (modal) {
+    modal.showModal();
+  }
+}
+
+/**
+ * Inicializa el cierre del modal de error.
+ */
+function initializeDeactivateErrorModal() {
+  const modal = document.querySelector("#deactivate-error-modal");
+  const closeButton = document.querySelector("#close-deactivate-error-modal");
+
+  if (!modal || !closeButton) {
+    return;
+  }
+
+  closeButton.addEventListener("click", () => {
+    modal.close();
+  });
+}
 // ========================================
 // INICIALIZAR PÁGINA
 // ========================================

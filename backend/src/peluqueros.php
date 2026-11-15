@@ -577,14 +577,18 @@ function actualizarPeluquero(int $id): void
 /**
  * Da de baja a un peluquero sin eliminar su registro.
  */
+
 function darDeBajaPeluquero(int $id): void
 {
+    $pdo = null;
+
     try {
         $pdo = getPDO();
 
         // Solo los administradores pueden dar de baja.
         requireAdmin($pdo);
 
+        // Comprobar que el identificador es válido.
         if ($id <= 0) {
             response(400, [
                 'status' => 'error',
@@ -592,12 +596,43 @@ function darDeBajaPeluquero(int $id): void
             ]);
         }
 
-        // Comprobar que el peluquero existe.
+        // Iniciar una transacción.
+        $pdo->beginTransaction();
+
+        /*
+         * Bloquear el registro del rol Administrador.
+         *
+         * Este bloqueo actúa como mecanismo de sincronización
+         * para evitar bajas simultáneas de administradores.
+         */
         $stmt = $pdo->prepare("
-            SELECT IDPeluquero, baja
+            SELECT IDRoles
+            FROM ROLES
+            WHERE IDRoles = 1
+            FOR UPDATE
+        ");
+
+        $stmt->execute();
+
+        if (!$stmt->fetch()) {
+            $pdo->rollBack();
+
+            response(500, [
+                'status' => 'error',
+                'message' => 'No se ha encontrado el rol Administrador'
+            ]);
+        }
+
+        // Comprobar que el peluquero existe y bloquear su registro.
+        $stmt = $pdo->prepare("
+            SELECT
+                IDPeluquero,
+                FK_rol,
+                baja,
+                FechaBaja
             FROM PELUQUEROS
             WHERE IDPeluquero = :id
-            LIMIT 1
+            FOR UPDATE
         ");
 
         $stmt->execute(['id' => $id]);
@@ -605,18 +640,54 @@ function darDeBajaPeluquero(int $id): void
         $peluquero = $stmt->fetch();
 
         if (!$peluquero) {
+            $pdo->rollBack();
+
             response(404, [
                 'status' => 'error',
                 'message' => 'No se ha encontrado el peluquero'
             ]);
         }
 
-        // Evitar dar de baja a alguien que ya está de baja.
-        if ((bool) $peluquero['baja']) {
+        // Evitar dar de baja a alguien que ya está inactivo.
+        if (
+            (bool) $peluquero['baja'] ||
+            $peluquero['FechaBaja'] !== null
+        ) {
+            $pdo->rollBack();
+
             response(409, [
                 'status' => 'error',
                 'message' => 'El peluquero ya está dado de baja'
             ]);
+        }
+
+        /*
+         * Si el peluquero es administrador, comprobar
+         * que exista al menos otro administrador activo.
+         */
+        if ((int) $peluquero['FK_rol'] === 1) {
+
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) AS total
+                FROM PELUQUEROS
+                WHERE FK_rol = 1
+                  AND baja = FALSE
+                  AND FechaBaja IS NULL
+            ");
+
+            $stmt->execute();
+
+            $totalAdministradores = (int) $stmt->fetchColumn();
+
+            // No permitir dar de baja al último administrador.
+            if ($totalAdministradores <= 1) {
+                $pdo->rollBack();
+
+                response(409, [
+                    'status' => 'error',
+                    'message' => 'No se puede dar de baja al último administrador activo'
+                ]);
+            }
         }
 
         // Realizar la baja lógica.
@@ -630,15 +701,24 @@ function darDeBajaPeluquero(int $id): void
 
         $stmt->execute(['id' => $id]);
 
+        // Confirmar la transacción.
+        $pdo->commit();
+
         response(200, [
             'status' => 'ok',
             'message' => 'Peluquero dado de baja correctamente',
             'id' => $id
         ]);
 
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
+
+        // Revertir los cambios si se ha iniciado una transacción.
+        if ($pdo !== null && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
         error_log(
-            'Error de base de datos al dar de baja peluquero: '
+            'Error al dar de baja peluquero: '
             . $e->getMessage()
         );
 
@@ -648,6 +728,7 @@ function darDeBajaPeluquero(int $id): void
         ]);
     }
 }
+
 
 
 /**
