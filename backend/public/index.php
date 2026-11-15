@@ -191,6 +191,15 @@ if ($method === 'PUT' && $path === '/api/password-reset') {
     cambiarPasswordRestablecimiento();
 }
 
+
+// PATCH /api/peluqueros/{id}/rol
+// Cambiar el rol de un peluquero.
+if (
+    $method === 'PATCH'
+    && preg_match('#^/api/peluqueros/(\d+)/rol$#', $path, $matches)
+) {
+    cambiarRolPeluquero((int) $matches[1]);
+}
     
 // ======================================================
 // ENDPOINT NO ENCONTRADO

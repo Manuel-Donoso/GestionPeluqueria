@@ -900,3 +900,213 @@ function resetearPasswordPeluquero(int $id): void
         ]);
     }
 }
+
+
+/**
+ * Cambia el rol de un peluquero.
+ *
+ * Solo los administradores pueden realizar esta operación.
+ * Comprueba que el peluquero está activo y que el nuevo rol existe.
+ * Impide que el sistema se quede sin ningún administrador activo.
+ */
+function cambiarRolPeluquero(int $id): void
+{
+    try {
+        $pdo = getPDO();
+
+        // Solo los administradores pueden cambiar roles.
+        requireAdmin($pdo);
+
+        // Comprobar que el identificador es válido.
+        if ($id <= 0) {
+            response(400, [
+                'status' => 'error',
+                'message' => 'El identificador del peluquero no es válido'
+            ]);
+        }
+
+        // Leer los datos enviados en formato JSON.
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!is_array($data)) {
+            response(400, [
+                'status' => 'error',
+                'message' => 'La petición no contiene un JSON válido'
+            ]);
+        }
+
+        // Obtener y validar el nuevo rol.
+        $nuevoRol = filter_var(
+            $data['FK_rol'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+
+        if (
+            $nuevoRol === false
+            || $nuevoRol === null
+            || $nuevoRol <= 0
+        ) {
+            response(400, [
+                'status' => 'error',
+                'message' => 'El nuevo rol indicado no es válido'
+            ]);
+        }
+
+        // Comprobar que el nuevo rol existe.
+        $stmt = $pdo->prepare("
+            SELECT IDRoles
+            FROM ROLES
+            WHERE IDRoles = :rol
+            LIMIT 1
+        ");
+
+        $stmt->execute(['rol' => $nuevoRol]);
+
+        if (!$stmt->fetch()) {
+            response(400, [
+                'status' => 'error',
+                'message' => 'El rol indicado no existe'
+            ]);
+        }
+
+        // Iniciar una transacción para proteger el cambio.
+        $pdo->beginTransaction();
+
+        // Buscar al peluquero y bloquear su registro.
+        $stmt = $pdo->prepare("
+            SELECT
+                IDPeluquero,
+                FK_rol,
+                baja,
+                FechaBaja
+            FROM PELUQUEROS
+            WHERE IDPeluquero = :id
+            LIMIT 1
+            FOR UPDATE
+        ");
+
+        $stmt->execute(['id' => $id]);
+
+        $peluquero = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Comprobar que el peluquero existe.
+        if (!$peluquero) {
+            $pdo->rollBack();
+
+            response(404, [
+                'status' => 'error',
+                'message' => 'No se ha encontrado el peluquero'
+            ]);
+        }
+
+        // No permitir cambiar el rol de una cuenta inactiva.
+        if (
+            (bool) $peluquero['baja']
+            || $peluquero['FechaBaja'] !== null
+        ) {
+            $pdo->rollBack();
+
+            response(409, [
+                'status' => 'error',
+                'message' => 'No se puede cambiar el rol de un peluquero dado de baja'
+            ]);
+        }
+
+        $rolActual = (int) $peluquero['FK_rol'];
+
+        // Comprobar si el usuario ya tiene ese rol.
+        if ($rolActual === $nuevoRol) {
+            $pdo->rollBack();
+
+            response(200, [
+                'status' => 'ok',
+                'message' => 'El peluquero ya tiene asignado ese rol',
+                'id' => $id,
+                'FK_rol' => $nuevoRol
+            ]);
+        }
+
+        // Si se está retirando el rol de administrador,
+        // comprobar que queda al menos otro administrador activo.
+        if ($rolActual === 1 && $nuevoRol !== 1) {
+
+            // Bloquear los registros de los administradores activos.
+            $stmt = $pdo->query("
+                SELECT IDPeluquero
+                FROM PELUQUEROS
+                WHERE FK_rol = 1
+                  AND baja = 0
+                  AND FechaBaja IS NULL
+                FOR UPDATE
+            ");
+
+            $administradores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (count($administradores) <= 1) {
+                $pdo->rollBack();
+
+                response(409, [
+                    'status' => 'error',
+                    'message' => 'No se puede retirar el rol al último administrador activo'
+                ]);
+            }
+        }
+
+        // Actualizar exclusivamente el rol del peluquero.
+        $stmt = $pdo->prepare("
+            UPDATE PELUQUEROS
+            SET FK_rol = :rol
+            WHERE IDPeluquero = :id
+              AND baja = 0
+              AND FechaBaja IS NULL
+        ");
+
+        $stmt->execute([
+            'rol' => $nuevoRol,
+            'id' => $id
+        ]);
+
+        // Confirmar los cambios.
+        $pdo->commit();
+
+        response(200, [
+            'status' => 'ok',
+            'message' => 'El rol del peluquero se ha cambiado correctamente',
+            'id' => $id,
+            'FK_rol' => $nuevoRol
+        ]);
+
+    } catch (PDOException $e) {
+
+        // Deshacer los cambios si se produce un error.
+        if (isset($pdo) && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        error_log(
+            'Error de base de datos al cambiar el rol del peluquero: '
+            . $e->getMessage()
+        );
+
+        response(500, [
+            'status' => 'error',
+            'message' => 'Error al cambiar el rol del peluquero'
+        ]);
+
+    } catch (Throwable $e) {
+
+        if (isset($pdo) && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+
+        error_log(
+            'Error al cambiar el rol del peluquero: '
+            . $e->getMessage()
+        );
+
+        response(500, [
+            'status' => 'error',
+            'message' => 'No se ha podido cambiar el rol del peluquero'
+        ]);
+    }
+}
