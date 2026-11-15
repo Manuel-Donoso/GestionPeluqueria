@@ -1,237 +1,283 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Administración de peluqueros</title>
 
     <!-- Estilos generales -->
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/styles.css" />
 
     <!-- Estilos específicos de administración -->
-    <link rel="stylesheet" href="../assets/css/administracion-peluqueros.css">
+    <link rel="stylesheet" href="../assets/css/administracion-peluqueros.css" />
 
     <!-- Scripts -->
     <script src="../assets/js/api.js" defer></script>
     <script src="../assets/js/auth.js" defer></script>
     <script src="../assets/js/administracion-peluqueros.js" defer></script>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <main class="admin-container">
+      <!-- Navegación -->
+      <nav class="admin-navigation">
+        <a href="../dashboard.html">← Volver al panel de control</a>
+      </nav>
 
-        <!-- Navegación -->
-        <nav class="admin-navigation">
-            <a href="../dashboard.html">← Volver al panel de control</a>
-        </nav>
+      <!-- Cabecera -->
+      <header class="admin-header">
+        <div>
+          <h1>Administración de peluqueros</h1>
+          <p>Gestiona los usuarios, permisos y estados de los empleados.</p>
+        </div>
 
-        <!-- Cabecera -->
-        <header class="admin-header">
-            <div>
-                <h1>Administración de peluqueros</h1>
-                <p>Gestiona los usuarios, permisos y estados de los empleados.</p>
-            </div>
+        <button type="button" id="new-hairdresser-button">
+          Nuevo peluquero
+        </button>
+      </header>
 
-            <button type="button" id="new-hairdresser-button">
-                Nuevo peluquero
-            </button>
-        </header>
+      <!-- Listado de peluqueros -->
+      <section class="admin-card">
+        <div class="section-heading">
+          <h2>Listado de peluqueros</h2>
+          <span id="hairdresser-count">0 usuarios</span>
+        </div>
 
-        <!-- Listado de peluqueros -->
-        <section class="admin-card">
+        <!-- Buscador y filtros -->
+        <div class="admin-filters">
+          <div class="input-group">
+            <label for="search-hairdresser">Buscar</label>
+            <input
+              type="search"
+              id="search-hairdresser"
+              placeholder="Nombre, apellidos o usuario..."
+            />
+          </div>
 
-            <div class="section-heading">
-                <h2>Listado de peluqueros</h2>
-                <span id="hairdresser-count">0 usuarios</span>
-            </div>
+          <div class="input-group">
+            <label for="filter-role">Filtrar por rol</label>
+            <select id="filter-role">
+              <option value="">Todos los roles</option>
+            </select>
+          </div>
 
-            <!-- Buscador y filtros -->
-            <div class="admin-filters">
+          <div class="input-group">
+            <label for="filter-status">Filtrar por estado</label>
+            <select id="filter-status">
+              <option value="">Todos los estados</option>
+              <option value="activo">Activos</option>
+              <option value="baja">Dados de baja</option>
+            </select>
+          </div>
+        </div>
 
-                <div class="input-group">
-                    <label for="search-hairdresser">Buscar</label>
-                    <input
-                        type="search"
-                        id="search-hairdresser"
-                        placeholder="Nombre, apellidos o usuario..."
-                    >
-                </div>
+        <!-- Mensajes -->
+        <div id="admin-message" class="form-message" role="status" hidden></div>
 
-                <div class="input-group">
-                    <label for="filter-role">Filtrar por rol</label>
-                    <select id="filter-role">
-                        <option value="">Todos los roles</option>
-                    </select>
-                </div>
+        <!-- Tabla -->
+        <div class="table-container">
+          <table class="hairdressers-table">
+            <thead>
+              <tr>
+                <th>Nombre y apellidos</th>
+                <th>Usuario</th>
+                <th>Correo electrónico</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
 
-                <div class="input-group">
-                    <label for="filter-status">Filtrar por estado</label>
-                    <select id="filter-status">
-                        <option value="">Todos los estados</option>
-                        <option value="activo">Activos</option>
-                        <option value="baja">Dados de baja</option>
-                    </select>
-                </div>
+            <tbody id="hairdressers-list">
+              <tr>
+                <td colspan="6">Cargando peluqueros...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-            </div>
-
-            <!-- Mensajes -->
-            <div id="admin-message" class="form-message" role="status" hidden></div>
-
-            <!-- Tabla -->
-            <div class="table-container">
-
-                <table class="hairdressers-table">
-
-                    <thead>
-                        <tr>
-                            <th>Nombre y apellidos</th>
-                            <th>Usuario</th>
-                            <th>Correo electrónico</th>
-                            <th>Rol</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="hairdressers-list">
-                        <tr>
-                            <td colspan="6">Cargando peluqueros...</td>
-                        </tr>
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-
-        <!-- ========================================
+      <!-- ========================================
             MODAL: NUEVO PELUQUERO
         ======================================== -->
 
-        <div id="hairdresser-modal" class="modal-overlay" hidden>
+      <div id="hairdresser-modal" class="modal-overlay" hidden>
+        <section class="modal-card">
+          <div class="modal-header">
+            <h2>Nuevo peluquero</h2>
 
-            <section class="modal-card">
+            <button
+              type="button"
+              id="close-hairdresser-modal"
+              class="modal-close"
+              aria-label="Cerrar"
+            >
+              &times;
+            </button>
+          </div>
 
-                <div class="modal-header">
-                    <h2>Nuevo peluquero</h2>
+          <form id="hairdresser-form">
+            <div class="form-grid">
+              <div class="input-group">
+                <label for="new-usuario">Usuario *</label>
+                <input type="text" id="new-usuario" required maxlength="50" />
+              </div>
 
-                    <button
-                        type="button"
-                        id="close-hairdresser-modal"
-                        class="modal-close"
-                        aria-label="Cerrar"
-                    >
-                        &times;
-                    </button>
-                </div>
+              <div class="input-group">
+                <label for="new-rol">Rol *</label>
+                <select id="new-rol" required>
+                  <option value="">Selecciona un rol</option>
+                </select>
+              </div>
 
-                <form id="hairdresser-form">
+              <div class="input-group">
+                <label for="new-nombre">Nombre *</label>
+                <input type="text" id="new-nombre" required maxlength="100" />
+              </div>
 
-                    <div class="form-grid">
+              <div class="input-group">
+                <label for="new-apellido1">Primer apellido *</label>
+                <input
+                  type="text"
+                  id="new-apellido1"
+                  required
+                  maxlength="100"
+                />
+              </div>
 
-                        <div class="input-group">
-                            <label for="new-usuario">Usuario *</label>
-                            <input type="text" id="new-usuario" required maxlength="50">
-                        </div>
+              <div class="input-group">
+                <label for="new-apellido2">Segundo apellido</label>
+                <input type="text" id="new-apellido2" maxlength="100" />
+              </div>
 
-                        <div class="input-group">
-                            <label for="new-rol">Rol *</label>
-                            <select id="new-rol" required>
-                                <option value="">Selecciona un rol</option>
-                            </select>
-                        </div>
+              <div class="input-group">
+                <label for="new-telefono">Teléfono</label>
+                <input type="tel" id="new-telefono" maxlength="20" />
+              </div>
 
-                        <div class="input-group">
-                            <label for="new-nombre">Nombre *</label>
-                            <input type="text" id="new-nombre" required maxlength="100">
-                        </div>
+              <div class="input-group">
+                <label for="new-email">Correo electrónico</label>
+                <input type="email" id="new-email" maxlength="150" />
+              </div>
 
-                        <div class="input-group">
-                            <label for="new-apellido1">Primer apellido *</label>
-                            <input type="text" id="new-apellido1" required maxlength="100">
-                        </div>
+              <div class="input-group">
+                <label for="new-direccion">Dirección</label>
+                <input type="text" id="new-direccion" maxlength="255" />
+              </div>
 
-                        <div class="input-group">
-                            <label for="new-apellido2">Segundo apellido</label>
-                            <input type="text" id="new-apellido2" maxlength="100">
-                        </div>
+              <div class="input-group">
+                <label for="new-password">Contraseña inicial *</label>
+                <input
+                  type="password"
+                  id="new-password"
+                  required
+                  minlength="8"
+                  autocomplete="new-password"
+                />
+              </div>
 
-                        <div class="input-group">
-                            <label for="new-telefono">Teléfono</label>
-                            <input type="tel" id="new-telefono" maxlength="20">
-                        </div>
+              <div class="input-group">
+                <label for="new-password-confirm">Confirmar contraseña *</label>
+                <input
+                  type="password"
+                  id="new-password-confirm"
+                  required
+                  minlength="8"
+                  autocomplete="new-password"
+                />
+              </div>
 
-                        <div class="input-group">
-                            <label for="new-email">Correo electrónico</label>
-                            <input type="email" id="new-email" maxlength="150">
-                        </div>
+              <div class="input-group full-width">
+                <label for="new-notas">Notas</label>
+                <textarea id="new-notas" rows="3"></textarea>
+              </div>
+            </div>
 
-                        <div class="input-group">
-                            <label for="new-direccion">Dirección</label>
-                            <input type="text" id="new-direccion" maxlength="255">
-                        </div>
+            <div
+              id="hairdresser-form-message"
+              class="form-message"
+              role="status"
+              hidden
+            ></div>
 
-                        <div class="input-group">
-                            <label for="new-password">Contraseña inicial *</label>
-                            <input
-                                type="password"
-                                id="new-password"
-                                required
-                                minlength="8"
-                                autocomplete="new-password"
-                            >
-                        </div>
+            <div class="modal-actions">
+              <button type="button" id="cancel-hairdresser-button">
+                Cancelar
+              </button>
 
-                        <div class="input-group">
-                            <label for="new-password-confirm">Confirmar contraseña *</label>
-                            <input
-                                type="password"
-                                id="new-password-confirm"
-                                required
-                                minlength="8"
-                                autocomplete="new-password"
-                            >
-                        </div>
+              <button type="submit" id="save-hairdresser-button">
+                Registrar peluquero
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
 
-                        <div class="input-group full-width">
-                            <label for="new-notas">Notas</label>
-                            <textarea id="new-notas" rows="3"></textarea>
-                        </div>
+      <!-- ========================================
+            MODAL: CAMBIAR ROL DE UN PELUQUERO
+        ======================================== -->
 
-                    </div>
+      <div id="change-role-modal" class="modal-overlay" hidden>
+        <section class="modal-card">
+          <div class="modal-header">
+            <h2>Cambiar rol</h2>
 
-                    <div id="hairdresser-form-message"
-                        class="form-message"
-                        role="status"
-                        hidden>
-                    </div>
+            <button
+              type="button"
+              id="close-role-modal"
+              class="modal-close"
+              aria-label="Cerrar"
+            >
+              &times;
+            </button>
+          </div>
 
-                    <div class="modal-actions">
+          <form id="change-role-form">
+            <div class="form-grid">
+              <!-- Nombre del peluquero -->
+              <div class="input-group full-width">
+                <label>Usuario</label>
 
-                        <button type="button" id="cancel-hairdresser-button">
-                            Cancelar
-                        </button>
+                <p id="role-hairdresser-name"></p>
+              </div>
 
-                        <button type="submit" id="save-hairdresser-button">
-                            Registrar peluquero
-                        </button>
+              <!-- Rol actual -->
+              <div class="input-group full-width">
+                <label>Rol actual</label>
 
-                    </div>
+                <p id="current-hairdresser-role"></p>
+              </div>
 
-                </form>
+              <!-- Nuevo rol -->
+              <div class="input-group full-width">
+                <label for="change-hairdresser-role"> Nuevo rol * </label>
 
-            </section>
+                <select id="change-hairdresser-role" required>
+                  <option value="">Selecciona un rol</option>
+                </select>
+              </div>
+            </div>
 
-        </div>
+            <!-- Mensajes del formulario -->
+            <div
+              id="change-role-message"
+              class="form-message"
+              role="status"
+              hidden
+            ></div>
 
+            <!-- Botones -->
+            <div class="modal-actions">
+              <button type="button" id="cancel-role-button">Cancelar</button>
+
+              <button type="submit" id="save-role-button" disabled>
+                Guardar cambios
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
     </main>
-
-</body>
+  </body>
 </html>

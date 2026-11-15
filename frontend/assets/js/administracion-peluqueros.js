@@ -3,34 +3,64 @@
 // ========================================
 
 // Cuerpo de la tabla donde se mostrarán los peluqueros.
-const hairdressersList = document.querySelector('#hairdressers-list');
+const hairdressersList = document.querySelector("#hairdressers-list");
 
 // Contador de usuarios.
-const hairdresserCount = document.querySelector('#hairdresser-count');
+const hairdresserCount = document.querySelector("#hairdresser-count");
 
 // Selector de roles.
-const filterRole = document.querySelector('#filter-role');
+const filterRole = document.querySelector("#filter-role");
 
 // Mensajes de administración.
-const adminMessage = document.querySelector('#admin-message');
+const adminMessage = document.querySelector("#admin-message");
 
 // Buscador de peluqueros.
-const searchHairdresser = document.querySelector('#search-hairdresser');
+const searchHairdresser = document.querySelector("#search-hairdresser");
 
 // Selector de estado.
-const filterStatus = document.querySelector('#filter-status');
+const filterStatus = document.querySelector("#filter-status");
 
 // Modal de nuevo peluquero.
-const hairdresserModal = document.querySelector('#hairdresser-modal');
-const newHairdresserButton = document.querySelector('#new-hairdresser-button');
-const closeHairdresserModal = document.querySelector('#close-hairdresser-modal');
-const cancelHairdresserButton = document.querySelector('#cancel-hairdresser-button');
+const hairdresserModal = document.querySelector("#hairdresser-modal");
+const newHairdresserButton = document.querySelector("#new-hairdresser-button");
+const closeHairdresserModal = document.querySelector(
+  "#close-hairdresser-modal",
+);
+const cancelHairdresserButton = document.querySelector(
+  "#cancel-hairdresser-button",
+);
 
 // Formulario de nuevo peluquero.
-const hairdresserForm = document.querySelector('#hairdresser-form');
-const newRole = document.querySelector('#new-rol');
-const hairdresserFormMessage = document.querySelector('#hairdresser-form-message');
-const saveHairdresserButton = document.querySelector('#save-hairdresser-button');
+const hairdresserForm = document.querySelector("#hairdresser-form");
+const newRole = document.querySelector("#new-rol");
+const hairdresserFormMessage = document.querySelector(
+  "#hairdresser-form-message",
+);
+const saveHairdresserButton = document.querySelector(
+  "#save-hairdresser-button",
+);
+
+// ========================================
+// MODAL DE CAMBIO DE ROL
+// ========================================
+
+const changeRoleModal = document.querySelector("#change-role-modal");
+const changeRoleForm = document.querySelector("#change-role-form");
+
+const closeRoleModalButton = document.querySelector("#close-role-modal");
+const cancelRoleButton = document.querySelector("#cancel-role-button");
+
+const roleHairdresserName = document.querySelector("#role-hairdresser-name");
+const currentHairdresserRole = document.querySelector(
+  "#current-hairdresser-role",
+);
+
+const changeHairdresserRole = document.querySelector(
+  "#change-hairdresser-role",
+);
+
+const changeRoleMessage = document.querySelector("#change-role-message");
+const saveRoleButton = document.querySelector("#save-role-button");
 
 // ========================================
 // VARIABLES
@@ -42,56 +72,56 @@ let hairdressers = [];
 // Almacenará los roles recibidos desde la API.
 let roles = [];
 
+// Almacenará el identificador del peluquero cuyo rol vamos a cambiar.
+let selectedHairdresserId = null;
+
 // ========================================
 // COMPROBAR SESIÓN Y PERMISOS
 // ========================================
 
 async function initializeAdministration() {
+  try {
+    // Comprobar que la API está disponible.
+    const apiAvailable = await checkApi();
 
-    try {
+    if (!apiAvailable) {
+      throw new Error("No se puede conectar con la API");
+    }
 
-        // Comprobar que la API está disponible.
-        const apiAvailable = await checkApi();
+    // Obtener los datos del usuario autenticado.
+    const user = await getAuthenticatedUser();
 
-        if (!apiAvailable) {
-            throw new Error('No se puede conectar con la API');
-        }
+    // Comprobar que el usuario es administrador.
+    if (String(user.rol) !== "1") {
+      window.location.href = "../dashboard.html";
+      return;
+    }
 
-        // Obtener los datos del usuario autenticado.
-        const user = await getAuthenticatedUser();
-
-        // Comprobar que el usuario es administrador.
-        if (String(user.rol) !== '1') {
-            window.location.href = '../dashboard.html';
-            return;
-        }
-
-        // Cargar los roles y los peluqueros.
-        await Promise.all([
-        loadRoles(),
-        loadHairdressers()
-        ]);
+    // Cargar los roles y los peluqueros.
+    await Promise.all([loadRoles(), loadHairdressers()]);
 
     // Inicializar los filtros.
     initializeFilters();
     // Inicializar el modal de nuevo peluquero.
-    initializeHairdresserModal();       
-        } catch (error) {
+    initializeHairdresserModal();
+  } catch (error) {
+    console.error("Error al inicializar la administración:", error);
 
-            console.error('Error al inicializar la administración:', error);
-
-            if (error.status === 401 || error.message === 'No hay una sesión activa') {
-                window.location.href = '../index.html';
-                return;
-            }
-
-        showAdminMessage(
-            error.message || 'No se ha podido cargar la administración',
-            'error'
-        );
+    if (error.status === 401 || error.message === "No hay una sesión activa") {
+      window.location.href = "../index.html";
+      return;
     }
-    // Inicializar las acciones de los peluqueros.
-    initializeHairdresserActions();
+
+    showAdminMessage(
+      error.message || "No se ha podido cargar la administración",
+      "error",
+    );
+  }
+  // Inicializar las acciones de los peluqueros.
+  initializeHairdresserActions();
+
+  // Inicializar el modal de cambio de rol.
+  initializeRoleModal();
 }
 
 // ========================================
@@ -99,106 +129,88 @@ async function initializeAdministration() {
 // ========================================
 
 async function loadRoles() {
+  try {
+    // Obtener el token de sesión.
+    const token = getToken();
 
-    try {
+    // Consultar los roles disponibles.
+    const result = await apiRequest("/api/roles", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-        // Obtener el token de sesión.
-        const token = getToken();
-
-        // Consultar los roles disponibles.
-        const result = await apiRequest('/api/roles', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-
-        if (result.status !== 'ok') {
-            throw new Error('No se han podido obtener los roles');
-        }
-
-        roles = result.roles;
-
-        // Añadir los roles a los selectores.
-        roles.forEach(role => {
-
-            // Opción para el filtro.
-            const filterOption = document.createElement('option');
-
-            filterOption.value = role.IDRoles;
-            filterOption.textContent = role.rol;
-
-            filterRole.appendChild(filterOption);
-
-            // Opción para el formulario de alta.
-            const formOption = document.createElement('option');
-
-            formOption.value = role.IDRoles;
-            formOption.textContent = role.rol;
-
-            newRole.appendChild(formOption);
-
-        });
-
-    } catch (error) {
-
-        console.error('Error al cargar los roles:', error);
-        throw error;
-
+    if (result.status !== "ok") {
+      throw new Error("No se han podido obtener los roles");
     }
 
-}
+    roles = result.roles;
 
+    // Añadir los roles a los selectores.
+    roles.forEach((role) => {
+      // Opción para el filtro.
+      const filterOption = document.createElement("option");
+
+      filterOption.value = role.IDRoles;
+      filterOption.textContent = role.rol;
+
+      filterRole.appendChild(filterOption);
+
+      // Opción para el formulario de alta.
+      const formOption = document.createElement("option");
+
+      formOption.value = role.IDRoles;
+      formOption.textContent = role.rol;
+
+      newRole.appendChild(formOption);
+    });
+  } catch (error) {
+    console.error("Error al cargar los roles:", error);
+    throw error;
+  }
+}
 
 // ========================================
 // CARGAR PELUQUEROS
 // ========================================
 
 async function loadHairdressers() {
+  try {
+    // Obtener el token de sesión.
+    const token = getToken();
 
-    try {
+    // Consultar los peluqueros.
+    const result = await apiRequest("/api/peluqueros", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-        // Obtener el token de sesión.
-        const token = getToken();
-
-        // Consultar los peluqueros.
-        const result = await apiRequest('/api/peluqueros', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-
-        if (result.status !== 'ok') {
-            throw new Error('No se han podido obtener los peluqueros');
-        }
-
-        hairdressers = result.peluqueros;
-
-        // Mostrar los peluqueros en la tabla.
-        renderHairdressers();
-
-    } catch (error) {
-
-        console.error('Error al cargar los peluqueros:', error);
-        throw error;
-
+    if (result.status !== "ok") {
+      throw new Error("No se han podido obtener los peluqueros");
     }
+
+    hairdressers = result.peluqueros;
+
+    // Mostrar los peluqueros en la tabla.
+    renderHairdressers();
+  } catch (error) {
+    console.error("Error al cargar los peluqueros:", error);
+    throw error;
+  }
 }
 
 // ========================================
 // MOSTRAR PELUQUEROS EN LA TABLA
 // ========================================
-
 
 // ========================================
 // MOSTRAR PELUQUEROS EN LA TABLA
 // ========================================
 
 function renderHairdressers() {
-
-    renderFilteredHairdressers(hairdressers);
-
+  renderFilteredHairdressers(hairdressers);
 }
-
 
 // ========================================
 // EVENTOS DE LAS ACCIONES DE LOS PELUQUEROS
@@ -211,14 +223,8 @@ function renderHairdressers() {
  * se generan dinámicamente al mostrar la tabla.
  */
 function initializeHairdresserActions() {
-
-    hairdressersList.addEventListener(
-        'click',
-        handleHairdresserAction
-    );
-
+  hairdressersList.addEventListener("click", handleHairdresserAction);
 }
-
 
 // ========================================
 // GESTIONAR ACCIONES DE LOS PELUQUEROS
@@ -230,36 +236,32 @@ function initializeHairdresserActions() {
  * @param {Event} event - Evento de clic.
  */
 function handleHairdresserAction(event) {
+  // Obtener el botón pulsado.
+  const button = event.target.closest("button[data-action]");
 
-    // Obtener el botón pulsado.
-    const button = event.target.closest('button[data-action]');
+  // Comprobar que se ha pulsado un botón de acción.
+  if (!button || !hairdressersList.contains(button)) {
+    return;
+  }
 
-    // Comprobar que se ha pulsado un botón de acción.
-    if (!button || !hairdressersList.contains(button)) {
-        return;
-    }
+  // Obtener la acción y el identificador del peluquero.
+  const action = button.dataset.action;
+  const hairdresserId = button.dataset.id;
 
-    // Obtener la acción y el identificador del peluquero.
-    const action = button.dataset.action;
-    const hairdresserId = button.dataset.id;
-
-    // Ejecutar la acción correspondiente.
-    if (action === 'deactivate') {
-
-        // Dar de baja al peluquero.
-        deactivateHairdresser(hairdresserId, button);
-
-    } else if (action === 'reactivate') {
-
-        // Reactivar la cuenta del peluquero.
-        reactivateHairdresser(hairdresserId, button);
-
-    } else if (action === 'reset-password') {
-        resetHairdresserPassword(hairdresserId, button);   
-    }
-
+  // Ejecutar la acción correspondiente.
+  if (action === "deactivate") {
+    // Dar de baja al peluquero.
+    deactivateHairdresser(hairdresserId, button);
+  } else if (action === "reactivate") {
+    // Reactivar la cuenta del peluquero.
+    reactivateHairdresser(hairdresserId, button);
+  } else if (action === "reset-password") {
+    resetHairdresserPassword(hairdresserId, button);
+  } else if (action === "change-role") {
+    // Abrir el modal para cambiar el rol.
+    openChangeRoleModal(hairdresserId);
+  }
 }
-
 
 // ========================================
 // DAR DE BAJA A UN PELUQUERO
@@ -275,120 +277,101 @@ function handleHairdresserAction(event) {
  * @param {HTMLButtonElement} button - Botón pulsado.
  */
 async function deactivateHairdresser(hairdresserId, button) {
+  // Buscar los datos del peluquero seleccionado.
+  const hairdresser = hairdressers.find(
+    (item) => String(item.IDPeluquero) === String(hairdresserId),
+  );
 
-    // Buscar los datos del peluquero seleccionado.
-    const hairdresser = hairdressers.find(
-        item => String(item.IDPeluquero) === String(hairdresserId)
+  // Comprobar que el peluquero existe.
+  if (!hairdresser) {
+    showAdminMessage("No se ha encontrado el peluquero seleccionado", "error");
+
+    return;
+  }
+
+  // Preparar el nombre completo para la confirmación.
+  const fullName = [
+    hairdresser.Nombre,
+    hairdresser.Apellido1,
+    hairdresser.Apellido2,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  // Solicitar confirmación al administrador.
+  const confirmed = window.confirm(
+    `¿Estás seguro de que quieres dar de baja a ${fullName}?\n\n` +
+      "La cuenta dejará de estar disponible, pero sus datos se conservarán.",
+  );
+
+  // Cancelar la operación si no se confirma.
+  if (!confirmed) {
+    return;
+  }
+
+  // Desactivar temporalmente el botón.
+  button.disabled = true;
+  button.textContent = "Procesando...";
+
+  try {
+    // Obtener el token de sesión.
+    const token = getToken();
+
+    if (!token) {
+      throw new Error("No hay una sesión activa");
+    }
+
+    // Enviar la petición a la API.
+    const result = await apiRequest(`/api/peluqueros/${hairdresserId}/baja`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Comprobar el resultado de la operación.
+    if (result.status !== "ok") {
+      throw new Error(
+        result.message || "No se ha podido dar de baja al peluquero",
+      );
+    }
+
+    // Mostrar el mensaje de confirmación.
+    showAdminMessage(
+      `El peluquero ${fullName} ha sido dado de baja correctamente`,
+      "success",
     );
 
-    // Comprobar que el peluquero existe.
-    if (!hairdresser) {
+    // Actualizar los datos de la tabla.
+    await loadHairdressers();
 
-        showAdminMessage(
-            'No se ha encontrado el peluquero seleccionado',
-            'error'
-        );
+    // Volver a aplicar los filtros actuales.
+    filterHairdressers();
+  } catch (error) {
+    console.error("Error al dar de baja al peluquero:", error);
 
-        return;
+    // Si la sesión ha caducado, volver al login.
+    if (error.status === 401) {
+      clearToken();
+      window.location.href = "../index.html";
 
+      return;
     }
 
-    // Preparar el nombre completo para la confirmación.
-    const fullName = [
-        hairdresser.Nombre,
-        hairdresser.Apellido1,
-        hairdresser.Apellido2
-    ].filter(Boolean).join(' ');
-
-    // Solicitar confirmación al administrador.
-    const confirmed = window.confirm(
-        `¿Estás seguro de que quieres dar de baja a ${fullName}?\n\n` +
-        'La cuenta dejará de estar disponible, pero sus datos se conservarán.'
+    // Mostrar el error al administrador.
+    showAdminMessage(
+      error.message || "Error al dar de baja al peluquero",
+      "error",
     );
+  } finally {
+    // Recuperar el botón si todavía existe en el documento.
+    button.disabled = false;
 
-    // Cancelar la operación si no se confirma.
-    if (!confirmed) {
-        return;
+    if (button.isConnected) {
+      button.textContent = "Dar de baja";
     }
-
-    // Desactivar temporalmente el botón.
-    button.disabled = true;
-    button.textContent = 'Procesando...';
-
-    try {
-
-        // Obtener el token de sesión.
-        const token = getToken();
-
-        if (!token) {
-            throw new Error('No hay una sesión activa');
-        }
-
-        // Enviar la petición a la API.
-        const result = await apiRequest(
-            `/api/peluqueros/${hairdresserId}/baja`,
-            {
-                method: 'PATCH',
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-
-        // Comprobar el resultado de la operación.
-        if (result.status !== 'ok') {
-
-            throw new Error(
-                result.message || 'No se ha podido dar de baja al peluquero'
-            );
-
-        }
-
-        // Mostrar el mensaje de confirmación.
-        showAdminMessage(
-            `El peluquero ${fullName} ha sido dado de baja correctamente`,
-            'success'
-        );
-
-        // Actualizar los datos de la tabla.
-        await loadHairdressers();
-
-        // Volver a aplicar los filtros actuales.
-        filterHairdressers();
-
-    } catch (error) {
-
-        console.error('Error al dar de baja al peluquero:', error);
-
-        // Si la sesión ha caducado, volver al login.
-        if (error.status === 401) {
-
-            clearToken();
-            window.location.href = '../index.html';
-
-            return;
-
-        }
-
-        // Mostrar el error al administrador.
-        showAdminMessage(
-            error.message || 'Error al dar de baja al peluquero',
-            'error'
-        );
-
-    } finally {
-
-        // Recuperar el botón si todavía existe en el documento.
-        button.disabled = false;
-
-        if (button.isConnected) {
-            button.textContent = 'Dar de baja';
-        }
-
-    }
-
+  }
 }
-
 
 // ========================================
 // REACTIVAR CUENTA DE UN PELUQUERO
@@ -404,118 +387,98 @@ async function deactivateHairdresser(hairdresserId, button) {
  * @param {HTMLButtonElement} button - Botón pulsado.
  */
 async function reactivateHairdresser(hairdresserId, button) {
+  // Buscar los datos del peluquero seleccionado.
+  const hairdresser = hairdressers.find(
+    (item) => String(item.IDPeluquero) === String(hairdresserId),
+  );
 
-    // Buscar los datos del peluquero seleccionado.
-    const hairdresser = hairdressers.find(
-        item => String(item.IDPeluquero) === String(hairdresserId)
+  // Comprobar que el peluquero existe.
+  if (!hairdresser) {
+    showAdminMessage("No se ha encontrado el peluquero seleccionado", "error");
+
+    return;
+  }
+
+  // Preparar el nombre completo.
+  const fullName = [
+    hairdresser.Nombre,
+    hairdresser.Apellido1,
+    hairdresser.Apellido2,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  // Solicitar confirmación al administrador.
+  const confirmed = window.confirm(
+    `¿Estás seguro de que quieres reactivar la cuenta de ${fullName}?\n\n` +
+      "El peluquero volverá a tener acceso a la aplicación.",
+  );
+
+  // Cancelar la operación si no se confirma.
+  if (!confirmed) {
+    return;
+  }
+
+  // Desactivar temporalmente el botón.
+  button.disabled = true;
+  button.textContent = "Procesando...";
+
+  try {
+    // Obtener el token de sesión.
+    const token = getToken();
+
+    if (!token) {
+      throw new Error("No hay una sesión activa");
+    }
+
+    // Enviar la petición a la API.
+    const result = await apiRequest(
+      `/api/peluqueros/${hairdresserId}/reactivar`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
     );
 
-    // Comprobar que el peluquero existe.
-    if (!hairdresser) {
-
-        showAdminMessage(
-            'No se ha encontrado el peluquero seleccionado',
-            'error'
-        );
-
-        return;
-
+    // Comprobar el resultado de la operación.
+    if (result.status !== "ok") {
+      throw new Error(result.message || "No se ha podido reactivar la cuenta");
     }
 
-    // Preparar el nombre completo.
-    const fullName = [
-        hairdresser.Nombre,
-        hairdresser.Apellido1,
-        hairdresser.Apellido2
-    ].filter(Boolean).join(' ');
-
-    // Solicitar confirmación al administrador.
-    const confirmed = window.confirm(
-        `¿Estás seguro de que quieres reactivar la cuenta de ${fullName}?\n\n` +
-        'El peluquero volverá a tener acceso a la aplicación.'
+    // Mostrar el mensaje de confirmación.
+    showAdminMessage(
+      `La cuenta de ${fullName} ha sido reactivada correctamente`,
+      "success",
     );
 
-    // Cancelar la operación si no se confirma.
-    if (!confirmed) {
-        return;
+    // Actualizar los datos de la tabla.
+    await loadHairdressers();
+
+    // Volver a aplicar los filtros actuales.
+    filterHairdressers();
+  } catch (error) {
+    console.error("Error al reactivar la cuenta:", error);
+
+    // Si la sesión ha caducado, volver al login.
+    if (error.status === 401) {
+      clearToken();
+      window.location.href = "../index.html";
+
+      return;
     }
 
-    // Desactivar temporalmente el botón.
-    button.disabled = true;
-    button.textContent = 'Procesando...';
+    // Mostrar el error al administrador.
+    showAdminMessage(error.message || "Error al reactivar la cuenta", "error");
+  } finally {
+    // Recuperar el botón si todavía existe en el documento.
+    button.disabled = false;
 
-    try {
-
-        // Obtener el token de sesión.
-        const token = getToken();
-
-        if (!token) {
-            throw new Error('No hay una sesión activa');
-        }
-
-        // Enviar la petición a la API.
-        const result = await apiRequest(
-            `/api/peluqueros/${hairdresserId}/reactivar`,
-            {
-                method: 'PATCH',
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-
-        // Comprobar el resultado de la operación.
-        if (result.status !== 'ok') {
-
-            throw new Error(
-                result.message || 'No se ha podido reactivar la cuenta'
-            );
-
-        }
-
-        // Mostrar el mensaje de confirmación.
-        showAdminMessage(
-            `La cuenta de ${fullName} ha sido reactivada correctamente`,
-            'success'
-        );
-
-        // Actualizar los datos de la tabla.
-        await loadHairdressers();
-
-        // Volver a aplicar los filtros actuales.
-        filterHairdressers();
-
-    } catch (error) {
-
-        console.error('Error al reactivar la cuenta:', error);
-
-        // Si la sesión ha caducado, volver al login.
-        if (error.status === 401) {
-
-            clearToken();
-            window.location.href = '../index.html';
-
-            return;
-
-        }
-
-        // Mostrar el error al administrador.
-        showAdminMessage(
-            error.message || 'Error al reactivar la cuenta',
-            'error'
-        );
-
-    } finally {
-
-        // Recuperar el botón si todavía existe en el documento.
-        button.disabled = false;
-
-        if (button.isConnected) {
-            button.textContent = 'Reactivar';
-        }
-
+    if (button.isConnected) {
+      button.textContent = "Reactivar";
     }
-
+  }
 }
 
 // ========================================
@@ -534,13 +497,12 @@ async function reactivateHairdresser(hairdresserId, button) {
  * @returns {boolean} True si está de baja, false si está activo.
  */
 function isHairdresserInactive(hairdresser) {
-
-    return Number(hairdresser.baja) === 1 ||
-        hairdresser.baja === true ||
-        hairdresser.FechaBaja != null;
-
+  return (
+    Number(hairdresser.baja) === 1 ||
+    hairdresser.baja === true ||
+    hairdresser.FechaBaja != null
+  );
 }
-
 
 // ========================================
 // MOSTRAR RESULTADOS FILTRADOS
@@ -555,217 +517,210 @@ function isHairdresserInactive(hairdresser) {
  * @param {Array} filteredHairdressers - Lista de peluqueros filtrados.
  */
 function renderFilteredHairdressers(filteredHairdressers) {
+  // Limpiar el contenido actual de la tabla.
+  hairdressersList.replaceChildren();
 
-    // Limpiar el contenido actual de la tabla.
-    hairdressersList.replaceChildren();
+  // Actualizar el contador de resultados.
+  hairdresserCount.textContent = `${filteredHairdressers.length} de ${hairdressers.length} usuarios`;
 
-    // Actualizar el contador de resultados.
-    hairdresserCount.textContent =
-        `${filteredHairdressers.length} de ${hairdressers.length} usuarios`;
+  // Comprobar si existen resultados.
+  if (filteredHairdressers.length === 0) {
+    // Crear una fila para mostrar el mensaje.
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
 
-    // Comprobar si existen resultados.
-    if (filteredHairdressers.length === 0) {
+    // La celda ocupará las seis columnas de la tabla.
+    cell.colSpan = 6;
+    cell.textContent = "No se han encontrado peluqueros";
 
-        // Crear una fila para mostrar el mensaje.
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
+    // Añadir la fila a la tabla.
+    row.appendChild(cell);
+    hairdressersList.appendChild(row);
 
-        // La celda ocupará las seis columnas de la tabla.
-        cell.colSpan = 6;
-        cell.textContent = 'No se han encontrado peluqueros';
+    // Finalizar la función al no haber resultados.
+    return;
+  }
 
-        // Añadir la fila a la tabla.
-        row.appendChild(cell);
-        hairdressersList.appendChild(row);
+  // Crear una fila por cada peluquero.
+  filteredHairdressers.forEach((hairdresser) => {
+    // Crear una nueva fila.
+    const row = document.createElement("tr");
 
-        // Finalizar la función al no haber resultados.
-        return;
+    // ----------------------------------------
+    // NOMBRE Y APELLIDOS
+    // ----------------------------------------
 
+    const nameCell = document.createElement("td");
+
+    // Construir el nombre completo.
+    // Se eliminan los valores vacíos para evitar espacios innecesarios.
+    nameCell.textContent = [
+      hairdresser.Nombre,
+      hairdresser.Apellido1,
+      hairdresser.Apellido2,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    row.appendChild(nameCell);
+
+    // ----------------------------------------
+    // NOMBRE DE USUARIO
+    // ----------------------------------------
+
+    row.appendChild(createTableCell(hairdresser.Usuario));
+
+    // ----------------------------------------
+    // CORREO ELECTRÓNICO
+    // ----------------------------------------
+
+    row.appendChild(createTableCell(hairdresser.Email));
+
+    // ----------------------------------------
+    // ROL DEL PELUQUERO
+    // ----------------------------------------
+
+    row.appendChild(createTableCell(hairdresser.NombreRol));
+
+    // ----------------------------------------
+    // ESTADO DE LA CUENTA
+    // ----------------------------------------
+
+    const statusCell = document.createElement("td");
+    const status = document.createElement("span");
+
+    // Comprobar si el peluquero está dado de baja.
+    const inactive = isHairdresserInactive(hairdresser);
+
+    // Mostrar el estado correspondiente.
+    status.textContent = inactive ? "De baja" : "Activo";
+
+    // Aplicar la clase CSS según el estado.
+    status.className = inactive
+      ? "hairdresser-status inactive"
+      : "hairdresser-status active";
+
+    // Añadir el indicador de estado a la celda.
+    statusCell.appendChild(status);
+    row.appendChild(statusCell);
+
+    // ----------------------------------------
+    // ACCIONES DISPONIBLES
+    // ----------------------------------------
+
+    const actionsCell = document.createElement("td");
+    // Aplicar la clase CSS del contenedor de acciones.
+    actionsCell.className = "hairdresser-actions";
+
+    // Comprobar las acciones disponibles según el estado.
+    if (inactive) {
+      // ------------------------------------
+      // CUENTA DE BAJA
+      // ------------------------------------
+
+      // Crear el botón para reactivar la cuenta.
+      const reactivateButton = document.createElement("button");
+
+      reactivateButton.type = "button";
+      reactivateButton.textContent = "Reactivar";
+
+      // Aplicar las clases CSS.
+      reactivateButton.className = "action-button reactivate-button";
+
+      // Guardar la acción y el identificador del peluquero.
+      // Estos datos permitirán identificar el botón al pulsarlo.
+      reactivateButton.dataset.action = "reactivate";
+      reactivateButton.dataset.id = hairdresser.IDPeluquero;
+
+      // Añadir el botón a la celda de acciones.
+      actionsCell.appendChild(reactivateButton);
+    } else {
+      // ------------------------------------
+      // CUENTA ACTIVA
+      // ------------------------------------
+
+      // Crear el botón para dar de baja.
+      const deactivateButton = document.createElement("button");
+
+      deactivateButton.type = "button";
+      deactivateButton.textContent = "Dar de baja";
+
+      // Aplicar las clases CSS.
+      deactivateButton.className = "action-button deactivate-button";
+
+      // Guardar la acción y el identificador del peluquero.
+      deactivateButton.dataset.action = "deactivate";
+      deactivateButton.dataset.id = hairdresser.IDPeluquero;
+
+      // Añadir el botón a la celda de acciones.
+      actionsCell.appendChild(deactivateButton);
+
+      // ------------------------------------
+      // RESET DE CONTRASEÑA
+      // ------------------------------------
+
+      // Crear el botón para restablecer la contraseña.
+      const resetPasswordButton = document.createElement("button");
+
+      resetPasswordButton.type = "button";
+      resetPasswordButton.textContent = "Resetear contraseña";
+
+      // Aplicar las clases CSS.
+      resetPasswordButton.className = "action-button reset-password-button";
+
+      // Guardar la acción y el identificador del peluquero.
+      resetPasswordButton.dataset.action = "reset-password";
+      resetPasswordButton.dataset.id = hairdresser.IDPeluquero;
+
+      // Añadir el botón a la celda de acciones.
+      actionsCell.appendChild(resetPasswordButton);
+
+      // ------------------------------------
+      // CAMBIAR ROL
+      // ------------------------------------
+
+      // Crear el botón para cambiar el rol.
+      const changeRoleButton = document.createElement("button");
+
+      changeRoleButton.type = "button";
+      changeRoleButton.textContent = "Cambiar rol";
+
+      // Aplicar las clases CSS.
+      changeRoleButton.className = "action-button change-role-button";
+
+      // Guardar la acción y el identificador del peluquero.
+      changeRoleButton.dataset.action = "change-role";
+      changeRoleButton.dataset.id = hairdresser.IDPeluquero;
+
+      // Añadir el botón a la celda de acciones.
+      actionsCell.appendChild(changeRoleButton);
     }
 
-    // Crear una fila por cada peluquero.
-    filteredHairdressers.forEach(hairdresser => {
+    // ----------------------------------------
+    // AÑADIR FILA A LA TABLA
+    // ----------------------------------------
 
-        // Crear una nueva fila.
-        const row = document.createElement('tr');
+    // Añadir la celda de acciones a la fila.
+    row.appendChild(actionsCell);
 
-
-        // ----------------------------------------
-        // NOMBRE Y APELLIDOS
-        // ----------------------------------------
-
-        const nameCell = document.createElement('td');
-
-        // Construir el nombre completo.
-        // Se eliminan los valores vacíos para evitar espacios innecesarios.
-        nameCell.textContent = [
-            hairdresser.Nombre,
-            hairdresser.Apellido1,
-            hairdresser.Apellido2
-        ].filter(Boolean).join(' ');
-
-        row.appendChild(nameCell);
-
-
-        // ----------------------------------------
-        // NOMBRE DE USUARIO
-        // ----------------------------------------
-
-        row.appendChild(
-            createTableCell(hairdresser.Usuario)
-        );
-
-
-        // ----------------------------------------
-        // CORREO ELECTRÓNICO
-        // ----------------------------------------
-
-        row.appendChild(
-            createTableCell(hairdresser.Email)
-        );
-
-
-        // ----------------------------------------
-        // ROL DEL PELUQUERO
-        // ----------------------------------------
-
-        row.appendChild(
-            createTableCell(hairdresser.NombreRol)
-        );
-
-
-        // ----------------------------------------
-        // ESTADO DE LA CUENTA
-        // ----------------------------------------
-
-        const statusCell = document.createElement('td');
-        const status = document.createElement('span');
-
-        // Comprobar si el peluquero está dado de baja.
-        const inactive = isHairdresserInactive(hairdresser);
-
-        // Mostrar el estado correspondiente.
-        status.textContent = inactive ? 'De baja' : 'Activo';
-
-        // Aplicar la clase CSS según el estado.
-        status.className = inactive
-            ? 'hairdresser-status inactive'
-            : 'hairdresser-status active';
-
-        // Añadir el indicador de estado a la celda.
-        statusCell.appendChild(status);
-        row.appendChild(statusCell);
-
-
-        // ----------------------------------------
-        // ACCIONES DISPONIBLES
-        // ----------------------------------------
-
-        const actionsCell = document.createElement('td');
-
-        // Comprobar las acciones disponibles según el estado.
-        if (inactive) {
-
-            // ------------------------------------
-            // CUENTA DE BAJA
-            // ------------------------------------
-
-            // Crear el botón para reactivar la cuenta.
-            const reactivateButton = document.createElement('button');
-
-            reactivateButton.type = 'button';
-            reactivateButton.textContent = 'Reactivar';
-
-            // Aplicar las clases CSS.
-            reactivateButton.className =
-                'action-button reactivate-button';
-
-            // Guardar la acción y el identificador del peluquero.
-            // Estos datos permitirán identificar el botón al pulsarlo.
-            reactivateButton.dataset.action = 'reactivate';
-            reactivateButton.dataset.id = hairdresser.IDPeluquero;
-
-            // Añadir el botón a la celda de acciones.
-            actionsCell.appendChild(reactivateButton);
-
-        } else {
-
-            // ------------------------------------
-            // CUENTA ACTIVA
-            // ------------------------------------
-
-            // Crear el botón para dar de baja.
-            const deactivateButton = document.createElement('button');
-
-            deactivateButton.type = 'button';
-            deactivateButton.textContent = 'Dar de baja';
-
-            // Aplicar las clases CSS.
-            deactivateButton.className =
-                'action-button deactivate-button';
-
-            // Guardar la acción y el identificador del peluquero.
-            deactivateButton.dataset.action = 'deactivate';
-            deactivateButton.dataset.id = hairdresser.IDPeluquero;
-
-            // Añadir el botón a la celda de acciones.
-            actionsCell.appendChild(deactivateButton);
-
-
-            // ------------------------------------
-            // RESET DE CONTRASEÑA
-            // ------------------------------------
-
-            // Crear el botón para restablecer la contraseña.
-            const resetPasswordButton = document.createElement('button');
-
-            resetPasswordButton.type = 'button';
-            resetPasswordButton.textContent = 'Resetear contraseña';
-
-            // Aplicar las clases CSS.
-            resetPasswordButton.className =
-                'action-button reset-password-button';
-
-            // Guardar la acción y el identificador del peluquero.
-            resetPasswordButton.dataset.action = 'reset-password';
-            resetPasswordButton.dataset.id = hairdresser.IDPeluquero;
-
-            // Añadir el botón a la celda de acciones.
-            actionsCell.appendChild(resetPasswordButton);
-
-        }
-
-
-        // ----------------------------------------
-        // AÑADIR FILA A LA TABLA
-        // ----------------------------------------
-
-        // Añadir la celda de acciones a la fila.
-        row.appendChild(actionsCell);
-
-        // Añadir la fila completa al cuerpo de la tabla.
-        hairdressersList.appendChild(row);
-
-    });
-
+    // Añadir la fila completa al cuerpo de la tabla.
+    hairdressersList.appendChild(row);
+  });
 }
-    
 
 // ========================================
 // EVENTOS DE LOS FILTROS
 // ========================================
 
 function initializeFilters() {
+  // Buscar mientras se escribe.
+  searchHairdresser.addEventListener("input", filterHairdressers);
 
-    // Buscar mientras se escribe.
-    searchHairdresser.addEventListener('input', filterHairdressers);
+  // Filtrar por rol.
+  filterRole.addEventListener("change", filterHairdressers);
 
-    // Filtrar por rol.
-    filterRole.addEventListener('change', filterHairdressers);
-
-    // Filtrar por estado.
-    filterStatus.addEventListener('change', filterHairdressers);
-
+  // Filtrar por estado.
+  filterStatus.addEventListener("change", filterHairdressers);
 }
 
 // ========================================
@@ -773,13 +728,11 @@ function initializeFilters() {
 // ========================================
 
 function createTableCell(value) {
+  const cell = document.createElement("td");
 
-    const cell = document.createElement('td');
+  cell.textContent = value || "—";
 
-    cell.textContent = value || '—';
-
-    return cell;
-
+  return cell;
 }
 
 // ========================================
@@ -787,72 +740,63 @@ function createTableCell(value) {
 // ========================================
 
 function showAdminMessage(message, type) {
-
-    adminMessage.textContent = message;
-    adminMessage.className = `form-message ${type}`;
-    adminMessage.hidden = false;
-
+  adminMessage.textContent = message;
+  adminMessage.className = `form-message ${type}`;
+  adminMessage.hidden = false;
 }
-
-
-
 
 // ========================================
 // FILTRAR PELUQUEROS
 // ========================================
 
 function filterHairdressers() {
+  // Obtener los valores de los filtros.
+  const search = searchHairdresser.value.trim().toLowerCase();
+  const selectedRole = filterRole.value;
+  const selectedStatus = filterStatus.value;
 
-    // Obtener los valores de los filtros.
-    const search = searchHairdresser.value.trim().toLowerCase();
-    const selectedRole = filterRole.value;
-    const selectedStatus = filterStatus.value;
-    
+  // ========================================
+  // Filtrar los peluqueros según los criterios seleccionados
+  // ========================================
 
-// ========================================
-// Filtrar los peluqueros según los criterios seleccionados
-// ========================================
+  // Filtrar los peluqueros.
+  const filteredHairdressers = hairdressers.filter((hairdresser) => {
+    // Preparar el texto de búsqueda.
+    const fullName = [
+      hairdresser.Nombre,
+      hairdresser.Apellido1,
+      hairdresser.Apellido2,
+      hairdresser.Usuario,
+      hairdresser.Email,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
 
-    // Filtrar los peluqueros.
-    const filteredHairdressers = hairdressers.filter(hairdresser => {
+    // Comprobar el texto introducido.
+    const matchesSearch = fullName.includes(search);
 
-        // Preparar el texto de búsqueda.
-        const fullName = [
-            hairdresser.Nombre,
-            hairdresser.Apellido1,
-            hairdresser.Apellido2,
-            hairdresser.Usuario,
-            hairdresser.Email
-        ].filter(Boolean).join(' ').toLowerCase();
+    // Comprobar el rol seleccionado.
+    const matchesRole =
+      selectedRole === "" || String(hairdresser.FK_rol) === selectedRole;
 
-        // Comprobar el texto introducido.
-        const matchesSearch = fullName.includes(search);
+    // Comprobar el estado del peluquero.
+    const inactive =
+      Number(hairdresser.baja) === 1 ||
+      hairdresser.baja === true ||
+      hairdresser.FechaBaja !== null;
 
-        // Comprobar el rol seleccionado.
-        const matchesRole =
-            selectedRole === '' ||
-            String(hairdresser.FK_rol) === selectedRole;
+    const matchesStatus =
+      selectedStatus === "" ||
+      (selectedStatus === "activo" && !inactive) ||
+      (selectedStatus === "baja" && inactive);
 
-        // Comprobar el estado del peluquero.
-        const inactive =
-            Number(hairdresser.baja) === 1 ||
-            hairdresser.baja === true ||
-            hairdresser.FechaBaja !== null;
+    return matchesSearch && matchesRole && matchesStatus;
+  });
 
-        const matchesStatus =
-            selectedStatus === '' ||
-            (selectedStatus === 'activo' && !inactive) ||
-            (selectedStatus === 'baja' && inactive);
-
-        return matchesSearch && matchesRole && matchesStatus;
-
-    });
-
-    // Mostrar únicamente los resultados filtrados.
-    renderFilteredHairdressers(filteredHairdressers);
-
+  // Mostrar únicamente los resultados filtrados.
+  renderFilteredHairdressers(filteredHairdressers);
 }
-
 
 // ========================================
 // MODAL DE NUEVO PELUQUERO
@@ -860,189 +804,154 @@ function filterHairdressers() {
 
 // Abrir el formulario.
 function openHairdresserModal() {
+  hairdresserForm.reset();
 
-    hairdresserForm.reset();
+  hairdresserFormMessage.hidden = true;
 
-    hairdresserFormMessage.hidden = true;
-
-    hairdresserModal.hidden = false;
-
+  hairdresserModal.hidden = false;
 }
 
 // Cerrar el formulario.
 function closeHairdresserModalWindow() {
+  hairdresserModal.hidden = true;
 
-    hairdresserModal.hidden = true;
+  hairdresserForm.reset();
 
-    hairdresserForm.reset();
-
-    hairdresserFormMessage.hidden = true;
-
+  hairdresserFormMessage.hidden = true;
 }
 
 // Registrar los eventos del modal.
 function initializeHairdresserModal() {
+  newHairdresserButton.addEventListener("click", openHairdresserModal);
 
-    newHairdresserButton.addEventListener(
-        'click',
-        openHairdresserModal
-    );
+  closeHairdresserModal.addEventListener("click", closeHairdresserModalWindow);
 
-    closeHairdresserModal.addEventListener(
-        'click',
-        closeHairdresserModalWindow
-    );
+  cancelHairdresserButton.addEventListener(
+    "click",
+    closeHairdresserModalWindow,
+  );
 
-    cancelHairdresserButton.addEventListener(
-        'click',
-        closeHairdresserModalWindow
-    );
-
-        // Registrar un nuevo peluquero.
-    hairdresserForm.addEventListener(
-        'submit',
-        handleHairdresserSubmit
-    );  
-
+  // Registrar un nuevo peluquero.
+  hairdresserForm.addEventListener("submit", handleHairdresserSubmit);
 }
-
 
 // ========================================
 // REGISTRAR NUEVO PELUQUERO
 // ========================================
 
 async function handleHairdresserSubmit(event) {
+  console.log("Se ha ejecutado el evento submit");
 
-     console.log('Se ha ejecutado el evento submit');
+  // Evitar el envío tradicional del formulario.
+  event.preventDefault();
 
-    // Evitar el envío tradicional del formulario.
-    event.preventDefault();
+  // Obtener los valores del formulario.
+  const password = document.querySelector("#new-password").value;
+  const passwordConfirm = document.querySelector("#new-password-confirm").value;
 
-    // Obtener los valores del formulario.
-    const password = document.querySelector('#new-password').value;
-    const passwordConfirm = document.querySelector('#new-password-confirm').value;
+  // Comprobar que las contraseñas coinciden.
+  if (password !== passwordConfirm) {
+    showHairdresserFormMessage("Las contraseñas no coinciden", "error");
 
-    // Comprobar que las contraseñas coinciden.
-    if (password !== passwordConfirm) {
+    return;
+  }
 
-        showHairdresserFormMessage(
-            'Las contraseñas no coinciden',
-            'error'
-        );
+  // Comprobar la longitud mínima.
+  if (password.length < 8) {
+    showHairdresserFormMessage(
+      "La contraseña debe tener al menos 8 caracteres",
+      "error",
+    );
 
-        return;
+    return;
+  }
+
+  // Preparar los datos del nuevo peluquero.
+  const hairdresserData = {
+    Usuario: document.querySelector("#new-usuario").value.trim(),
+
+    Nombre: document.querySelector("#new-nombre").value.trim(),
+
+    Apellido1: document.querySelector("#new-apellido1").value.trim(),
+
+    Apellido2: document.querySelector("#new-apellido2").value.trim(),
+
+    Telefono: document.querySelector("#new-telefono").value.trim(),
+
+    Email: document.querySelector("#new-email").value.trim(),
+
+    Direccion: document.querySelector("#new-direccion").value.trim(),
+
+    Notas: document.querySelector("#new-notas").value.trim(),
+
+    PW: password,
+
+    FK_rol: newRole.value,
+  };
+
+  // Evitar envíos repetidos.
+  saveHairdresserButton.disabled = true;
+  saveHairdresserButton.textContent = "Registrando...";
+
+  hairdresserFormMessage.hidden = true;
+
+  try {
+    // Obtener el token de sesión.
+    const token = getToken();
+
+    if (!token) {
+      throw new Error("No hay una sesión activa");
     }
 
-    // Comprobar la longitud mínima.
-    if (password.length < 8) {
+    // Enviar los datos a la API.
+    const result = await apiRequest("/api/peluqueros", {
+      method: "POST",
 
-        showHairdresserFormMessage(
-            'La contraseña debe tener al menos 8 caracteres',
-            'error'
-        );
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
 
-        return;
+      body: JSON.stringify(hairdresserData),
+    });
+
+    if (result.status !== "ok") {
+      throw new Error(
+        result.message || "No se ha podido registrar el peluquero",
+      );
     }
 
-    // Preparar los datos del nuevo peluquero.
-    const hairdresserData = {
+    // Cerrar y limpiar el formulario.
+    closeHairdresserModalWindow();
 
-        Usuario: document.querySelector('#new-usuario').value.trim(),
+    // Mostrar el mensaje de éxito.
+    showAdminMessage("El peluquero se ha registrado correctamente", "success");
 
-        Nombre: document.querySelector('#new-nombre').value.trim(),
+    // Actualizar el listado.
+    await loadHairdressers();
 
-        Apellido1: document.querySelector('#new-apellido1').value.trim(),
+    // Volver a aplicar los filtros actuales.
+    filterHairdressers();
+  } catch (error) {
+    console.error("Error al registrar el peluquero:", error);
 
-        Apellido2: document.querySelector('#new-apellido2').value.trim(),
-
-        Telefono: document.querySelector('#new-telefono').value.trim(),
-
-        Email: document.querySelector('#new-email').value.trim(),
-
-        Direccion: document.querySelector('#new-direccion').value.trim(),
-
-        Notas: document.querySelector('#new-notas').value.trim(),
-
-        PW: password,
-
-        FK_rol: newRole.value
-
-    };
-
-    // Evitar envíos repetidos.
-    saveHairdresserButton.disabled = true;
-    saveHairdresserButton.textContent = 'Registrando...';
-
-    hairdresserFormMessage.hidden = true;
-
-    try {
-
-        // Obtener el token de sesión.
-        const token = getToken();
-
-        if (!token) {
-            throw new Error('No hay una sesión activa');
-        }
-
-        // Enviar los datos a la API.
-        const result = await apiRequest('/api/peluqueros', {
-
-            method: 'POST',
-
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify(hairdresserData)
-
-        });
-
-        if (result.status !== 'ok') {
-            throw new Error(
-                result.message || 'No se ha podido registrar el peluquero'
-            );
-        }
-
-        // Cerrar y limpiar el formulario.
-        closeHairdresserModalWindow();
-
-        // Mostrar el mensaje de éxito.
-        showAdminMessage(
-            'El peluquero se ha registrado correctamente',
-            'success'
-        );
-
-        // Actualizar el listado.
-        await loadHairdressers();
-
-        // Volver a aplicar los filtros actuales.
-        filterHairdressers();
-
-    } catch (error) {
-
-        console.error('Error al registrar el peluquero:', error);
-
-        // Si la sesión ha caducado, volver al login.
-        if (error.status === 401) {
-            clearToken();
-            window.location.href = '../index.html';
-            return;
-        }
-
-        showHairdresserFormMessage(
-            error.message || 'Error al registrar el peluquero',
-            'error'
-        );
-
-    } finally {
-
-        // Recuperar el botón.
-        saveHairdresserButton.disabled = false;
-        saveHairdresserButton.textContent = 'Registrar peluquero';
-
+    // Si la sesión ha caducado, volver al login.
+    if (error.status === 401) {
+      clearToken();
+      window.location.href = "../index.html";
+      return;
     }
-console.log('Modal inicializado correctamente');
+
+    showHairdresserFormMessage(
+      error.message || "Error al registrar el peluquero",
+      "error",
+    );
+  } finally {
+    // Recuperar el botón.
+    saveHairdresserButton.disabled = false;
+    saveHairdresserButton.textContent = "Registrar peluquero";
+  }
+  console.log("Modal inicializado correctamente");
 }
 
 // ========================================
@@ -1050,11 +959,9 @@ console.log('Modal inicializado correctamente');
 // ========================================
 
 function showHairdresserFormMessage(message, type) {
-
-    hairdresserFormMessage.textContent = message;
-    hairdresserFormMessage.className = `form-message ${type}`;
-    hairdresserFormMessage.hidden = false;
-
+  hairdresserFormMessage.textContent = message;
+  hairdresserFormMessage.className = `form-message ${type}`;
+  hairdresserFormMessage.hidden = false;
 }
 
 // ========================================
@@ -1070,116 +977,362 @@ function showHairdresserFormMessage(message, type) {
  * @param {HTMLButtonElement} button - Botón pulsado.
  */
 async function resetHairdresserPassword(hairdresserId, button) {
+  // Buscar los datos del peluquero.
+  const hairdresser = hairdressers.find(
+    (item) => String(item.IDPeluquero) === String(hairdresserId),
+  );
 
-    // Buscar los datos del peluquero.
+  if (!hairdresser) {
+    showAdminMessage("No se ha encontrado el peluquero seleccionado", "error");
+    return;
+  }
+
+  const fullName = [
+    hairdresser.Nombre,
+    hairdresser.Apellido1,
+    hairdresser.Apellido2,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  // Ventana de confirmación previa.
+  const confirmed = window.confirm(
+    `¿Estás seguro de que quieres resetear la contraseña de ${fullName}?\n\n` +
+      "Se generará una contraseña temporal que deberás comunicarle. " +
+      "La contraseña actual dejará de funcionar.",
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  // Bloquear el botón mientras se procesa.
+  button.disabled = true;
+  button.textContent = "Reseteando...";
+
+  try {
+    const token = getToken();
+
+    if (!token) {
+      throw new Error("No hay una sesión activa");
+    }
+
+    // Petición PATCH al endpoint de reset.
+    const result = await apiRequest(
+      `/api/peluqueros/${hairdresserId}/reset-password`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (result.status !== "ok") {
+      throw new Error(
+        result.message || "No se ha podido resetear la contraseña",
+      );
+    }
+
+    // La API devuelve la contraseña temporal en "passwordTemporal".
+    const temporaryPassword = result.passwordTemporal;
+
+    if (!temporaryPassword) {
+      throw new Error("La API no ha devuelto la contraseña temporal");
+    }
+
+    // Mostrar la contraseña temporal al administrador.
+    window.alert(
+      `Contraseña restablecida correctamente para ${fullName}.\n\n` +
+        `Contraseña temporal: ${temporaryPassword}\n\n` +
+        "Comunícasela al peluquero. Deberá cambiarla en su próximo inicio de sesión.",
+    );
+
+    showAdminMessage(
+      result.message || `Contraseña de ${fullName} restablecida correctamente`,
+      "success",
+    );
+  } catch (error) {
+    console.error("Error al resetear la contraseña:", error);
+
+    if (error.status === 401) {
+      clearToken();
+      window.location.href = "../index.html";
+      return;
+    }
+
+    showAdminMessage(
+      error.message || "Error al resetear la contraseña",
+      "error",
+    );
+  } finally {
+    button.disabled = false;
+
+    if (button.isConnected) {
+      button.textContent = "Resetear contraseña";
+    }
+  }
+}
+
+// ========================================
+// MODAL DE CAMBIO DE ROL
+// ========================================
+
+/**
+ * Abre el modal para cambiar el rol de un peluquero.
+ *
+ * @param {number|string} hairdresserId - ID del peluquero.
+ */
+function openChangeRoleModal(hairdresserId) {
+  // Buscar al peluquero seleccionado.
+  const hairdresser = hairdressers.find(
+    (item) => String(item.IDPeluquero) === String(hairdresserId),
+  );
+
+  if (!hairdresser) {
+    showAdminMessage("No se ha encontrado el peluquero seleccionado", "error");
+
+    return;
+  }
+
+  // Guardar el identificador del peluquero.
+  selectedHairdresserId = hairdresser.IDPeluquero;
+
+  // Construir el nombre completo.
+  const fullName = [
+    hairdresser.Nombre,
+    hairdresser.Apellido1,
+    hairdresser.Apellido2,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  // Mostrar los datos actuales.
+  roleHairdresserName.textContent = `${fullName} (${hairdresser.Usuario})`;
+
+  currentHairdresserRole.textContent = hairdresser.NombreRol;
+
+  // Limpiar las opciones anteriores.
+  changeHairdresserRole.replaceChildren();
+
+  // Crear la opción inicial.
+  const placeholder = document.createElement("option");
+
+  placeholder.value = "";
+  placeholder.textContent = "Selecciona un rol";
+
+  changeHairdresserRole.appendChild(placeholder);
+
+  // Añadir los roles disponibles.
+  roles.forEach((role) => {
+    const option = document.createElement("option");
+
+    option.value = role.IDRoles;
+    option.textContent = role.rol;
+
+    changeHairdresserRole.appendChild(option);
+  });
+
+  // Seleccionar el rol actual.
+  changeHairdresserRole.value = String(hairdresser.FK_rol);
+
+  // Limpiar mensajes anteriores.
+  changeRoleMessage.hidden = true;
+  changeRoleMessage.textContent = "";
+
+  // Deshabilitar el botón inicialmente.
+  saveRoleButton.disabled = true;
+
+  // Mostrar el modal.
+  changeRoleModal.hidden = false;
+}
+
+// ========================================
+// CERRAR MODAL DE CAMBIO DE ROL
+// ========================================
+
+function closeChangeRoleModal() {
+  changeRoleModal.hidden = true;
+
+  changeRoleForm.reset();
+
+  changeRoleMessage.hidden = true;
+  changeRoleMessage.textContent = "";
+
+  selectedHairdresserId = null;
+
+  saveRoleButton.disabled = true;
+}
+
+// ========================================
+// INICIALIZAR EVENTOS DEL MODAL
+// ========================================
+
+function initializeRoleModal() {
+  // Cerrar mediante el botón superior.
+  closeRoleModalButton.addEventListener("click", closeChangeRoleModal);
+
+  // Cerrar mediante el botón cancelar.
+  cancelRoleButton.addEventListener("click", closeChangeRoleModal);
+
+  // Habilitar guardar únicamente si el rol es diferente.
+  changeHairdresserRole.addEventListener("change", () => {
     const hairdresser = hairdressers.find(
-        item => String(item.IDPeluquero) === String(hairdresserId)
+      (item) => String(item.IDPeluquero) === String(selectedHairdresserId),
     );
 
     if (!hairdresser) {
-        showAdminMessage(
-            'No se ha encontrado el peluquero seleccionado',
-            'error'
-        );
-        return;
+      saveRoleButton.disabled = true;
+      return;
     }
 
-    const fullName = [
-        hairdresser.Nombre,
-        hairdresser.Apellido1,
-        hairdresser.Apellido2
-    ].filter(Boolean).join(' ');
+    saveRoleButton.disabled =
+      changeHairdresserRole.value === "" ||
+      changeHairdresserRole.value === String(hairdresser.FK_rol);
+  });
 
-    // Ventana de confirmación previa.
-    const confirmed = window.confirm(
-        `¿Estás seguro de que quieres resetear la contraseña de ${fullName}?\n\n` +
-        'Se generará una contraseña temporal que deberás comunicarle. ' +
-        'La contraseña actual dejará de funcionar.'
-    );
-
-    if (!confirmed) {
-        return;
-    }
-
-    // Bloquear el botón mientras se procesa.
-    button.disabled = true;
-    button.textContent = 'Reseteando...';
-
-    try {
-
-        const token = getToken();
-
-        if (!token) {
-            throw new Error('No hay una sesión activa');
-        }
-
-        // Petición PATCH al endpoint de reset.
-        const result = await apiRequest(
-            `/api/peluqueros/${hairdresserId}/reset-password`,
-            {
-                method: 'PATCH',
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-
-        if (result.status !== 'ok') {
-            throw new Error(
-                result.message || 'No se ha podido resetear la contraseña'
-            );
-        }
-
-        // La API devuelve la contraseña temporal en "passwordTemporal".
-        const temporaryPassword = result.passwordTemporal;
-
-        if (!temporaryPassword) {
-            throw new Error(
-                'La API no ha devuelto la contraseña temporal'
-            );
-        }
-
-        // Mostrar la contraseña temporal al administrador.
-        window.alert(
-            `Contraseña restablecida correctamente para ${fullName}.\n\n` +
-            `Contraseña temporal: ${temporaryPassword}\n\n` +
-            'Comunícasela al peluquero. Deberá cambiarla en su próximo inicio de sesión.'
-        );
-
-        showAdminMessage(
-            result.message ||
-            `Contraseña de ${fullName} restablecida correctamente`,
-            'success'
-        );
-
-    } catch (error) {
-
-        console.error('Error al resetear la contraseña:', error);
-
-        if (error.status === 401) {
-            clearToken();
-            window.location.href = '../index.html';
-            return;
-        }
-
-        showAdminMessage(
-            error.message || 'Error al resetear la contraseña',
-            'error'
-        );
-
-    } finally {
-
-        button.disabled = false;
-
-        if (button.isConnected) {
-            button.textContent = 'Resetear contraseña';
-        }
-    }
+  // Enviar el formulario.
+  changeRoleForm.addEventListener("submit", handleChangeRoleSubmit);
 }
 
+// ========================================
+// ENVIAR CAMBIO DE ROL
+// ========================================
+
+async function handleChangeRoleSubmit(event) {
+  // Evitar el envío tradicional del formulario.
+  event.preventDefault();
+
+  // Comprobar que existe un peluquero seleccionado.
+  if (!selectedHairdresserId) {
+    return;
+  }
+
+  // Obtener los datos del peluquero.
+  const hairdresser = hairdressers.find(
+    (item) => String(item.IDPeluquero) === String(selectedHairdresserId),
+  );
+
+  if (!hairdresser) {
+    showChangeRoleMessage(
+      "No se ha encontrado el peluquero seleccionado",
+      "error",
+    );
+
+    return;
+  }
+
+  // Obtener el nuevo rol.
+  const newRoleId = Number(changeHairdresserRole.value);
+
+  // Comprobar que se ha seleccionado un rol diferente.
+  if (!newRoleId || newRoleId === Number(hairdresser.FK_rol)) {
+    showChangeRoleMessage("Selecciona un rol diferente al actual", "error");
+
+    return;
+  }
+
+  // Solicitar confirmación.
+  const confirmed = window.confirm(
+    `¿Quieres cambiar el rol de ${hairdresser.Usuario}?\n\n` +
+      `Rol actual: ${hairdresser.NombreRol}\n` +
+      `Nuevo rol: ${roles.find((role) => Number(role.IDRoles) === newRoleId)?.rol}`,
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  // Evitar envíos repetidos.
+  saveRoleButton.disabled = true;
+  saveRoleButton.textContent = "Guardando...";
+
+  try {
+    // Obtener el token de sesión.
+    const token = getToken();
+
+    if (!token) {
+      throw new Error("No hay una sesión activa");
+    }
+
+    // Enviar el cambio de rol a la API.
+    const result = await apiRequest(
+      `/api/peluqueros/${selectedHairdresserId}/rol`,
+      {
+        method: "PATCH",
+
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          FK_rol: newRoleId,
+        }),
+      },
+    );
+
+    if (result.status !== "ok") {
+      throw new Error(result.message || "No se ha podido cambiar el rol");
+    }
+
+    // Guardar el nombre del peluquero para el mensaje.
+    const fullName = [
+      hairdresser.Nombre,
+      hairdresser.Apellido1,
+      hairdresser.Apellido2,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    // Cerrar el modal.
+    closeChangeRoleModal();
+
+    // Mostrar confirmación.
+    showAdminMessage(
+      `El rol de ${fullName} se ha cambiado correctamente`,
+      "success",
+    );
+
+    // Actualizar los datos de la tabla.
+    await loadHairdressers();
+
+    // Aplicar nuevamente los filtros.
+    filterHairdressers();
+  } catch (error) {
+    console.error("Error al cambiar el rol:", error);
+
+    // Si la sesión ha caducado, volver al login.
+    if (error.status === 401) {
+      clearToken();
+      window.location.href = "../index.html";
+
+      return;
+    }
+
+    // Mostrar el error recibido de la API.
+    showChangeRoleMessage(error.message || "Error al cambiar el rol", "error");
+  } finally {
+    // Recuperar el botón si el modal sigue abierto.
+    if (!changeRoleModal.hidden) {
+      saveRoleButton.disabled = false;
+      saveRoleButton.textContent = "Guardar cambios";
+    }
+  }
+}
+
+// ========================================
+// MOSTRAR MENSAJES DEL MODAL DE CAMBIO DE ROL
+// ========================================
+
+function showChangeRoleMessage(message, type) {
+  changeRoleMessage.textContent = message;
+  changeRoleMessage.className = `form-message ${type}`;
+  changeRoleMessage.hidden = false;
+}
 
 // ========================================
 // INICIALIZAR PÁGINA
 // ========================================
 
-document.addEventListener('DOMContentLoaded', initializeAdministration);
+document.addEventListener("DOMContentLoaded", initializeAdministration);
