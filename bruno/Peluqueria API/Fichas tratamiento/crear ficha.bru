@@ -1,0 +1,20 @@
+meta {
+  name: crear ficha
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/fichas-tratamiento
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

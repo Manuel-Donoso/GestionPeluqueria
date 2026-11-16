@@ -48,6 +48,7 @@ require_once __DIR__ . '/../src/clientes.php';
 require_once __DIR__ . '/../src/historial_clientes.php';
 require_once __DIR__ . '/../src/perfil.php';
 
+require_once __DIR__ . '/../src/fichas_tratamiento.php';
 
 // ======================================================
 // CONFIGURACIÓN GENERAL
@@ -297,6 +298,33 @@ if (
 ) {
     listarAuditoriaHistorialCliente((int) $matches[1]);
 }
+
+
+// ======================================================
+// ENDPOINTS DE FICHAS DE TRATAMIENTO
+// ======================================================
+
+// GET /api/fichas-tratamiento
+// Listar fichas de tratamiento.
+if ($method === 'GET' && $path === '/api/fichas-tratamiento') {
+    listarFichasTratamiento();
+}
+
+// GET /api/fichas-tratamiento/{id}
+// Obtener una ficha concreta.
+if (
+    $method === 'GET'
+    && preg_match('#^/api/fichas-tratamiento/(\d+)$#', $path, $matches)
+) {
+    obtenerFichaTratamiento((int) $matches[1]);
+}
+
+// POST /api/fichas-tratamiento
+// Crear una nueva ficha de tratamiento.
+if ($method === 'POST' && $path === '/api/fichas-tratamiento') {
+    crearFichaTratamiento();
+}
+
 
 // ======================================================
 // ENDPOINT NO ENCONTRADO
