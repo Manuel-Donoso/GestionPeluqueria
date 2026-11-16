@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Metadatos de configuración -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="description" content="Ficha individual del cliente" />
+
+    <title>Ficha del cliente | Peluquería</title>
+
+    <!-- Política de Seguridad de Contenidos -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+              default-src 'self';
+              script-src 'self';
+              style-src 'self';
+              connect-src http://127.0.0.1:8081;
+              img-src 'self' data:;
+          "
+    />
+
+    <!-- Estilos generales -->
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+
+    <!-- Estilos específicos de la ficha -->
+    <link rel="stylesheet" href="../assets/css/ficha-cliente.css" />
+
+    <!-- Scripts -->
+    <script src="../assets/js/api.js" defer></script>
+    <script src="../assets/js/auth.js" defer></script>
+    <script src="../assets/js/ficha-cliente.js" defer></script>
+  </head>
+
+  <body>
+    <main class="cliente-page">
+      <!-- ==================================================
+             CABECERA
+        =================================================== -->
+
+      <header class="cliente-header">
+        <div class="cliente-header-info">
+          <div class="cliente-breadcrumb">
+            <a href="clientes.html">Clientes</a>
+            <span>/</span>
+            <span>Ficha del cliente</span>
+          </div>
+
+          <h1>Ficha del cliente</h1>
+
+          <p>Información personal e historial profesional.</p>
+        </div>
+
+        <div class="cliente-header-actions">
+          <span id="cliente-estado" class="cliente-estado"> Cargando... </span>
+
+          <button type="button" id="volver-button" class="btn btn-secondary">
+            Volver a clientes
+          </button>
+        </div>
+      </header>
+
+      <!-- ==================================================
+             MENSAJES GENERALES
+        =================================================== -->
+
+      <div
+        id="cliente-message"
+        class="cliente-message"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
+
+      <!-- ==================================================
+             INFORMACIÓN DEL CLIENTE
+        =================================================== -->
+
+      <section class="cliente-section">
+        <div class="cliente-section-header">
+          <div>
+            <h2>Datos personales</h2>
+
+            <p>Información de contacto y datos generales del cliente.</p>
+          </div>
+
+          <div class="cliente-section-actions">
+            <button
+              type="button"
+              id="editar-cliente-button"
+              class="btn btn-primary"
+            >
+              Editar datos
+            </button>
+
+            <button
+              type="button"
+              id="guardar-cliente-button"
+              class="btn btn-primary"
+              hidden
+            >
+              Guardar cambios
+            </button>
+
+            <button
+              type="button"
+              id="cancelar-edicion-button"
+              class="btn btn-secondary"
+              hidden
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulario de datos personales -->
+
+        <form id="cliente-datos-form">
+          <div class="cliente-form-grid">
+            <!-- Nombre -->
+
+            <div class="form-group">
+              <label for="nombre"> Nombre * </label>
+
+              <input
+                type="text"
+                id="nombre"
+                name="Nombre"
+                maxlength="50"
+                required
+                readonly
+              />
+            </div>
+
+            <!-- Primer apellido -->
+
+            <div class="form-group">
+              <label for="apellido1"> Primer apellido * </label>
+
+              <input
+                type="text"
+                id="apellido1"
+                name="Apellido1"
+                maxlength="50"
+                required
+                readonly
+              />
+            </div>
+
+            <!-- Segundo apellido -->
+
+            <div class="form-group">
+              <label for="apellido2"> Segundo apellido </label>
+
+              <input
+                type="text"
+                id="apellido2"
+                name="Apellido2"
+                maxlength="50"
+                readonly
+              />
+            </div>
+
+            <!-- Teléfono -->
+
+            <div class="form-group">
+              <label for="telefono"> Teléfono </label>
+
+              <input
+                type="tel"
+                id="telefono"
+                name="Telefono"
+                maxlength="20"
+                readonly
+              />
+            </div>
+
+            <!-- Email -->
+
+            <div class="form-group">
+              <label for="email"> Correo electrónico </label>
+
+              <input
+                type="email"
+                id="email"
+                name="Email"
+                maxlength="100"
+                readonly
+              />
+            </div>
+
+            <!-- Dirección -->
+
+            <div class="form-group">
+              <label for="direccion"> Dirección </label>
+
+              <input
+                type="text"
+                id="direccion"
+                name="Direccion"
+                maxlength="255"
+                readonly
+              />
+            </div>
+
+            <!-- Fecha de alta -->
+
+            <div class="form-group">
+              <label for="fecha-alta"> Fecha de alta </label>
+
+              <input type="text" id="fecha-alta" readonly disabled />
+            </div>
+
+            <!-- Notas -->
+
+            <div class="form-group form-group-full">
+              <label for="notas"> Notas </label>
+
+              <textarea id="notas" name="Notas" rows="4" readonly></textarea>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- ==================================================
+             ESTADO DEL CLIENTE
+        =================================================== -->
+
+      <section class="cliente-section">
+        <div class="cliente-section-header">
+          <div>
+            <h2>Estado del cliente</h2>
+
+            <p>Gestión del estado de actividad del cliente.</p>
+          </div>
+        </div>
+
+        <div class="cliente-status-container">
+          <div class="cliente-status-info">
+            <span class="cliente-status-label"> Estado actual </span>
+
+            <strong id="estado-descripcion"> Cargando... </strong>
+          </div>
+
+          <div class="cliente-status-actions">
+            <button
+              type="button"
+              id="dar-baja-button"
+              class="btn btn-danger"
+              hidden
+            >
+              Dar de baja
+            </button>
+
+            <button
+              type="button"
+              id="reactivar-button"
+              class="btn btn-primary"
+              hidden
+            >
+              Reactivar cliente
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================
+             HISTORIAL DEL CLIENTE
+        =================================================== -->
+
+      <section class="cliente-section">
+        <div class="cliente-section-header">
+          <div>
+            <h2>Historial del cliente</h2>
+
+            <p>
+              Registro de observaciones y anotaciones profesionales relacionadas
+              con el cliente.
+            </p>
+          </div>
+        </div>
+
+        <!-- Añadir observación -->
+
+        <div class="historial-form-container">
+          <h3>Nueva observación</h3>
+
+          <form id="historial-form">
+            <div class="form-group">
+              <label for="historial-observacion"> Observaciones </label>
+
+              <textarea
+                id="historial-observacion"
+                name="observaciones"
+                rows="4"
+                placeholder="Escribe aquí una observación sobre el cliente..."
+                required
+              ></textarea>
+            </div>
+
+            <div class="historial-form-footer">
+              <span
+                id="historial-message"
+                class="form-message"
+                role="status"
+                aria-live="polite"
+              >
+              </span>
+
+              <button
+                type="submit"
+                id="guardar-historial-button"
+                class="btn btn-primary"
+              >
+                Añadir al historial
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tabla del historial -->
+
+        <div class="historial-container">
+          <div class="historial-header">
+            <h3>Observaciones anteriores</h3>
+
+            <span id="total-historial">0 registros</span>
+          </div>
+
+          <div class="historial-table-container">
+            <table class="historial-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Fecha</th>
+                  <th>Observaciones</th>
+                  <th>Profesional</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+
+              <tbody id="historial-tbody">
+                <tr>
+                  <td colspan="5" class="table-empty">Cargando historial...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ==================================================
+     DIÁLOGO: EDITAR OBSERVACIÓN
+=================================================== -->
+
+        <dialog id="editar-historial-dialog">
+          <form id="editar-historial-form">
+            <h3>Editar observación</h3>
+
+            <div class="form-group">
+              <label for="editar-historial-observaciones">
+                Observaciones *
+              </label>
+
+              <textarea
+                id="editar-historial-observaciones"
+                rows="5"
+                required
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="editar-historial-motivo">
+                Motivo de la modificación
+              </label>
+
+              <textarea
+                id="editar-historial-motivo"
+                rows="3"
+                placeholder="Explica por qué se modifica la anotación..."
+              ></textarea>
+            </div>
+
+            <div
+              id="editar-historial-message"
+              class="form-message"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></div>
+
+            <div class="dialog-actions">
+              <button
+                type="button"
+                id="cancelar-editar-historial"
+                class="btn btn-secondary"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                id="guardar-editar-historial"
+                class="btn btn-primary"
+              >
+                Guardar cambios
+              </button>
+            </div>
+          </form>
+        </dialog>
+
+        <!-- ==================================================
+     DIÁLOGO: CONSULTAR AUDITORÍA
+=================================================== -->
+
+        <dialog id="auditoria-historial-dialog">
+          <div class="dialog-content">
+            <h3>Historial de modificaciones</h3>
+
+            <p id="auditoria-historial-titulo"></p>
+
+            <div id="auditoria-historial-contenido">Cargando auditoría...</div>
+
+            <div class="dialog-actions">
+              <button
+                type="button"
+                id="cerrar-auditoria-historial"
+                class="btn btn-secondary"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </dialog>
+      </section>
+
+      <!-- ==================================================
+             FICHAS DE TRATAMIENTO
+        =================================================== -->
+
+      <section class="cliente-section">
+        <div class="cliente-section-header">
+          <div>
+            <h2>Fichas de tratamiento</h2>
+
+            <p>Historial de servicios y tratamientos realizados al cliente.</p>
+          </div>
+        </div>
+
+        <div class="tratamientos-placeholder">
+          <div class="tratamientos-placeholder-icon">
+            <span>✂</span>
+          </div>
+
+          <h3>Tratamientos del cliente</h3>
+
+          <p>
+            Aquí aparecerán las fichas de tratamiento asociadas a este cliente.
+          </p>
+
+          <span class="placeholder-badge"> Próximamente </span>
+        </div>
+      </section>
+
+      <!-- ==================================================
+             PIE DE PÁGINA
+        =================================================== -->
+
+      <footer class="cliente-footer">
+        <p>Aplicación de gestión de peluquería</p>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Metadatos de configuración -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Política de Seguridad de Contenidos -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src http://127.0.0.1:8081; img-src 'self' data:;"
+    />
+
+    <title>Clientes - Gestión de Peluquería</title>
+
+    <!-- Hojas de estilos -->
+    <link rel="stylesheet" href="../assets/css/styles.css" />
+    <link rel="stylesheet" href="../assets/css/clientes.css" />
+
+    <!-- Scripts de la aplicación -->
+    <script src="../assets/js/api.js" defer></script>
+    <script src="../assets/js/auth.js" defer></script>
+    <script src="../assets/js/clientes.js" defer></script>
+  </head>
+
+  <body>
+    <main class="shell">
+      <!-- ==================================================
+             CABECERA
+        =================================================== -->
+
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">GESTIÓN DE PELUQUERÍA</p>
+
+          <h1>Clientes</h1>
+
+          <p class="muted">Administración de la cartera de clientes.</p>
+        </div>
+
+        <div class="clientes-header-actions">
+          <span id="status" class="status"> Cargando clientes... </span>
+
+          <button id="volver-button" type="button" class="button-secondary">
+            Volver al panel
+          </button>
+        </div>
+      </header>
+
+      <!-- ==================================================
+             RESUMEN Y ACCIONES
+        =================================================== -->
+
+      <section class="clientes-summary">
+        <div>
+          <p class="eyebrow">CARTERA DE CLIENTES</p>
+
+          <h2>Listado de clientes</h2>
+
+          <p class="muted">
+            Consulta, busca y administra los clientes de la peluquería.
+          </p>
+        </div>
+
+        <button id="nuevo-cliente-button" type="button">+ Nuevo cliente</button>
+      </section>
+
+      <!-- ==================================================
+             BÚSQUEDA Y FILTROS
+        =================================================== -->
+
+      <section class="clientes-filters" aria-label="Filtros de clientes">
+        <div class="filter-search">
+          <label for="busqueda">Buscar cliente</label>
+
+          <input
+            type="search"
+            id="busqueda"
+            placeholder="Nombre, apellidos, teléfono o email..."
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="filter-state">
+          <label for="estado-filtro">Estado</label>
+
+          <select id="estado-filtro">
+            <option value="todos">Todos los clientes</option>
+            <option value="activos">Activos</option>
+            <option value="bajas">Dados de baja</option>
+          </select>
+        </div>
+
+        <button
+          id="limpiar-filtros-button"
+          type="button"
+          class="button-secondary"
+        >
+          Limpiar filtros
+        </button>
+      </section>
+
+      <!-- ==================================================
+             MENSAJES DE LA APLICACIÓN
+        =================================================== -->
+
+      <div
+        id="clientes-message"
+        class="message"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
+
+      <!-- ==================================================
+             TABLA DE CLIENTES
+        =================================================== -->
+
+      <section class="clientes-table-section" aria-label="Listado de clientes">
+        <div class="clientes-table-header">
+          <div>
+            <h3>Clientes registrados</h3>
+
+            <p class="muted">
+              Haz doble clic sobre un cliente para abrir su ficha.
+            </p>
+          </div>
+
+          <span id="total-clientes" class="clientes-counter"> 0 clientes </span>
+        </div>
+
+        <div class="table-container">
+          <table class="clientes-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Fecha de alta</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="clientes-tbody">
+              <!--
+                            Las filas se generarán dinámicamente
+                            desde clientes.js.
+                        -->
+
+              <tr>
+                <td colspan="6" class="table-empty">Cargando clientes...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================================================
+             MODAL: NUEVO CLIENTE
+        =================================================== -->
+
+      <dialog id="cliente-modal" class="cliente-modal">
+        <form id="cliente-form" method="dialog">
+          <div class="modal-header">
+            <div>
+              <p class="eyebrow">GESTIÓN DE CLIENTES</p>
+
+              <h2>Nuevo cliente</h2>
+
+              <p class="muted">Introduce los datos del nuevo cliente.</p>
+            </div>
+
+            <button
+              id="cerrar-modal-button"
+              type="button"
+              class="modal-close"
+              aria-label="Cerrar"
+            >
+              &times;
+            </button>
+          </div>
+
+          <!-- Datos personales -->
+
+          <fieldset>
+            <legend>Datos personales</legend>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="nombre">Nombre *</label>
+
+                <input
+                  type="text"
+                  id="nombre"
+                  name="Nombre"
+                  maxlength="50"
+                  required
+                  autocomplete="given-name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="apellido1">Primer apellido *</label>
+
+                <input
+                  type="text"
+                  id="apellido1"
+                  name="Apellido1"
+                  maxlength="50"
+                  required
+                  autocomplete="family-name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="apellido2">Segundo apellido</label>
+
+                <input
+                  type="text"
+                  id="apellido2"
+                  name="Apellido2"
+                  maxlength="50"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="telefono">Teléfono</label>
+
+                <input
+                  type="tel"
+                  id="telefono"
+                  name="Telefono"
+                  maxlength="20"
+                  autocomplete="tel"
+                />
+              </div>
+
+              <div class="form-group form-group-full">
+                <label for="email">Email</label>
+
+                <input
+                  type="email"
+                  id="email"
+                  name="Email"
+                  maxlength="100"
+                  autocomplete="email"
+                />
+              </div>
+
+              <div class="form-group form-group-full">
+                <label for="direccion">Dirección</label>
+
+                <input
+                  type="text"
+                  id="direccion"
+                  name="Direccion"
+                  maxlength="255"
+                  autocomplete="street-address"
+                />
+              </div>
+
+              <div class="form-group form-group-full">
+                <label for="notas">Notas</label>
+
+                <textarea
+                  id="notas"
+                  name="Notas"
+                  rows="4"
+                  placeholder="Observaciones generales del cliente..."
+                ></textarea>
+              </div>
+            </div>
+
+            <p class="form-hint">* Los campos marcados son obligatorios.</p>
+          </fieldset>
+
+          <!-- Mensaje del formulario -->
+
+          <div
+            id="form-message"
+            class="message"
+            role="alert"
+            aria-live="assertive"
+            hidden
+          ></div>
+
+          <!-- Botones del formulario -->
+
+          <div class="modal-actions">
+            <button
+              id="cancelar-cliente-button"
+              type="button"
+              class="button-secondary"
+            >
+              Cancelar
+            </button>
+
+            <button id="guardar-cliente-button" type="submit">
+              Guardar cliente
+            </button>
+          </div>
+        </form>
+      </dialog>
+
+      <!-- ==================================================
+             PIE DE PÁGINA
+        =================================================== -->
+
+      <footer>Proyecto local · PHP API · MariaDB · Electron</footer>
+    </main>
+  </body>
+</html>

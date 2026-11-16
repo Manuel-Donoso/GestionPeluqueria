@@ -1,0 +1,24 @@
+meta {
+  name: anadir al historial
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/clientes/1/historial
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {"observaciones":"Primera observación de prueba del historial del cliente."}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

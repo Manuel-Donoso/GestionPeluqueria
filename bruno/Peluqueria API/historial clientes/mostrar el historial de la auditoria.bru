@@ -1,0 +1,20 @@
+meta {
+  name: mostrar el historial de la auditoria
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/historial/1/auditoria
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

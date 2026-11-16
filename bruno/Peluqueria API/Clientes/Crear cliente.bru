@@ -1,0 +1,33 @@
+meta {
+  name: Crear cliente
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/clientes
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "Nombre": "felipe",
+      "Apellido1": "Fernández",
+      "Apellido2": "Sánchez",
+      "Telefono": "612345232",
+      "Direccion": "Calle Mayor 25, Madrid2",
+      "Email": "laura.fernandez2@email.com",
+      "Notas": "Prefiere cortes de pelo a media melena."
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+​
