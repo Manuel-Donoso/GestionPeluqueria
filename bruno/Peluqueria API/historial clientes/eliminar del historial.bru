@@ -1,0 +1,26 @@
+meta {
+  name: eliminar del historial
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/historial/1/eliminar
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "motivo": "Anotación duplicada por error. Se conserva la entrada original en la auditoría."
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

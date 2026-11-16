@@ -1,0 +1,27 @@
+meta {
+  name: historial del cliente id
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/historial/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "observaciones": "Se ha actualizado el tratamiento de color. Se aplica una nueva fórmula para mejorar la cobertura de las canas.",
+      "motivo": "Corrección de la anotación anterior tras revisar la ficha del cliente."
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

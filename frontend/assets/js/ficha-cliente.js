@@ -3,14 +3,12 @@
  * FICHA DE CLIENTE
  * ==========================================================
  *
- * Gestiona la información de un cliente individual:
+ * Gestiona:
  * - Carga de datos personales.
  * - Edición de datos.
  * - Baja y reactivación.
- * - Preparación de la sección de historial.
- *
- * El ID del cliente se obtiene de la URL:
- * ficha-cliente.html?id=1
+ * - Consulta del historial profesional.
+ * - Registro de nuevas observaciones.
  */
 
 // ==========================================================
@@ -22,8 +20,6 @@ const clienteEstado = document.getElementById("cliente-estado");
 const clienteMessage = document.getElementById("cliente-message");
 
 // Formulario de datos personales
-const clienteDatosForm = document.getElementById("cliente-datos-form");
-
 const inputNombre = document.getElementById("nombre");
 const inputApellido1 = document.getElementById("apellido1");
 const inputApellido2 = document.getElementById("apellido2");
@@ -51,6 +47,9 @@ const historialObservacion = document.getElementById("historial-observacion");
 const historialMessage = document.getElementById("historial-message");
 const totalHistorial = document.getElementById("total-historial");
 const historialTbody = document.getElementById("historial-tbody");
+const guardarHistorialButton = document.getElementById(
+  "guardar-historial-button",
+);
 
 // Navegación
 const volverButton = document.getElementById("volver-button");
@@ -59,14 +58,14 @@ const volverButton = document.getElementById("volver-button");
 // VARIABLES DE ESTADO
 // ==========================================================
 
-// ID del cliente obtenido de la URL
+// Obtener ID del cliente desde la URL
 const parametrosURL = new URLSearchParams(window.location.search);
 const idCliente = Number(parametrosURL.get("id"));
 
-// Datos del cliente cargado
+// Datos del cliente
 let clienteActual = null;
 
-// Indica si estamos editando los datos
+// Estado de edición
 let modoEdicion = false;
 
 // ==========================================================
@@ -79,33 +78,29 @@ document.addEventListener("DOMContentLoaded", initializeFichaCliente);
  * Inicializa la ficha del cliente.
  */
 async function initializeFichaCliente() {
-  // Comprobar que se ha recibido un ID válido
   if (!Number.isInteger(idCliente) || idCliente <= 0) {
     showClienteMessage(
       "No se ha indicado un identificador de cliente válido.",
       "error",
     );
-
     return;
   }
 
-  // Comprobar que existe una sesión activa
-  const token = getToken();
-
-  if (!token) {
+  if (!getToken()) {
     showClienteMessage(
       "La sesión ha caducado. Inicia sesión nuevamente.",
       "error",
     );
-
     return;
   }
 
-  // Configurar eventos
   initializeEvents();
 
-  // Cargar información del cliente
+  // Cargar los datos del cliente
   await loadCliente();
+
+  // Cargar el historial profesional
+  await loadHistorial();
 }
 
 // ==========================================================
@@ -116,49 +111,38 @@ async function initializeFichaCliente() {
  * Configura los eventos de los botones y formularios.
  */
 function initializeEvents() {
-  // Volver al listado de clientes
+  // Volver al listado
   if (volverButton) {
     volverButton.addEventListener("click", () => {
       window.location.href = "clientes.html";
     });
   }
 
-  // Activar modo edición
+  // Edición de datos
   if (editarClienteButton) {
     editarClienteButton.addEventListener("click", enableEditMode);
   }
 
-  // Guardar cambios
   if (guardarClienteButton) {
     guardarClienteButton.addEventListener("click", updateCliente);
   }
 
-  // Cancelar edición
   if (cancelarEdicionButton) {
     cancelarEdicionButton.addEventListener("click", cancelEditMode);
   }
 
-  // Dar de baja al cliente
+  // Baja y reactivación
   if (darBajaButton) {
     darBajaButton.addEventListener("click", darDeBajaCliente);
   }
 
-  // Reactivar cliente
   if (reactivarButton) {
     reactivarButton.addEventListener("click", reactivarCliente);
   }
 
-  // El historial todavía no dispone de endpoints en la API.
-  // Evitamos que el formulario intente enviarse.
+  // Registro de observaciones
   if (historialForm) {
-    historialForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      showHistorialMessage(
-        "El historial de clientes todavía no está disponible.",
-        "error",
-      );
-    });
+    historialForm.addEventListener("submit", crearEntradaHistorial);
   }
 }
 
@@ -171,12 +155,10 @@ function initializeEvents() {
  */
 async function loadCliente() {
   try {
-    const token = getToken();
-
     const result = await apiRequest(`/api/clientes/${idCliente}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
     });
 
@@ -190,10 +172,8 @@ async function loadCliente() {
       throw new Error("La API no ha devuelto los datos del cliente.");
     }
 
-    // Mostrar información
     renderCliente();
 
-    // Limpiar mensajes anteriores
     showClienteMessage("", "");
   } catch (error) {
     console.error("Error al cargar el cliente:", error);
@@ -210,7 +190,7 @@ async function loadCliente() {
 // ==========================================================
 
 /**
- * Muestra los datos personales del cliente en el formulario.
+ * Muestra los datos personales del cliente.
  */
 function renderCliente() {
   if (!clienteActual) {
@@ -227,10 +207,8 @@ function renderCliente() {
 
   inputFechaAlta.value = formatDate(clienteActual.FechaAlta);
 
-  // Mostrar el estado del cliente
   renderEstadoCliente();
 
-  // Asegurar que el formulario empieza en modo lectura
   setEditMode(false);
 }
 
@@ -253,7 +231,6 @@ function renderEstadoCliente() {
     darBajaButton.hidden = true;
     reactivarButton.hidden = false;
 
-    // No permitir editar los datos de un cliente de baja
     editarClienteButton.disabled = true;
   } else {
     clienteEstado.textContent = "Activo";
@@ -274,8 +251,6 @@ function renderEstadoCliente() {
 
 /**
  * Activa o desactiva el modo de edición.
- *
- * @param {boolean} activar
  */
 function setEditMode(activar) {
   modoEdicion = activar;
@@ -290,17 +265,14 @@ function setEditMode(activar) {
     inputNotas,
   ];
 
-  // Activar o desactivar los campos
   camposEditables.forEach((campo) => {
     campo.readOnly = !activar;
   });
 
-  // Mostrar los botones correspondientes
   editarClienteButton.hidden = activar;
   guardarClienteButton.hidden = !activar;
   cancelarEdicionButton.hidden = !activar;
 
-  // La fecha de alta nunca se puede modificar
   inputFechaAlta.readOnly = true;
   inputFechaAlta.disabled = true;
 }
@@ -312,9 +284,6 @@ function enableEditMode() {
   if (!clienteActual || Boolean(Number(clienteActual.baja))) {
     return;
   }
-
-  // Guardar una copia de los datos originales
-  renderCliente();
 
   setEditMode(true);
 
@@ -329,7 +298,6 @@ function cancelEditMode() {
     return;
   }
 
-  // Restaurar los valores originales
   renderCliente();
 
   showClienteMessage("Se ha cancelado la edición.", "success");
@@ -347,7 +315,6 @@ async function updateCliente() {
     return;
   }
 
-  // Recoger los datos del formulario
   const datosCliente = {
     Nombre: inputNombre.value.trim(),
     Apellido1: inputApellido1.value.trim(),
@@ -358,17 +325,14 @@ async function updateCliente() {
     Notas: inputNotas.value.trim(),
   };
 
-  // Validaciones básicas
   if (!datosCliente.Nombre) {
     showClienteMessage("El nombre del cliente es obligatorio.", "error");
-
     inputNombre.focus();
     return;
   }
 
   if (!datosCliente.Apellido1) {
     showClienteMessage("El primer apellido es obligatorio.", "error");
-
     inputApellido1.focus();
     return;
   }
@@ -378,7 +342,6 @@ async function updateCliente() {
       "Introduce una dirección de correo electrónico válida.",
       "error",
     );
-
     inputEmail.focus();
     return;
   }
@@ -393,12 +356,10 @@ async function updateCliente() {
   try {
     guardarClienteButton.disabled = true;
 
-    const token = getToken();
-
     const result = await apiRequest(`/api/clientes/${idCliente}`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(datosCliente),
@@ -410,13 +371,11 @@ async function updateCliente() {
       );
     }
 
-    // Actualizar los datos locales
     clienteActual = {
       ...clienteActual,
       ...datosCliente,
     };
 
-    // Volver al modo lectura
     renderCliente();
 
     showClienteMessage(
@@ -459,12 +418,10 @@ async function darDeBajaCliente() {
   try {
     darBajaButton.disabled = true;
 
-    const token = getToken();
-
     const result = await apiRequest(`/api/clientes/${idCliente}/baja`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
     });
 
@@ -474,10 +431,8 @@ async function darDeBajaCliente() {
       );
     }
 
-    // Actualizar el estado local
     clienteActual.baja = true;
 
-    // Actualizar la interfaz
     renderEstadoCliente();
 
     showClienteMessage(
@@ -519,12 +474,10 @@ async function reactivarCliente() {
   try {
     reactivarButton.disabled = true;
 
-    const token = getToken();
-
     const result = await apiRequest(`/api/clientes/${idCliente}/reactivar`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
     });
 
@@ -534,10 +487,8 @@ async function reactivarCliente() {
       );
     }
 
-    // Actualizar el estado local
     clienteActual.baja = false;
 
-    // Actualizar la interfaz
     renderEstadoCliente();
 
     showClienteMessage(
@@ -557,14 +508,164 @@ async function reactivarCliente() {
 }
 
 // ==========================================================
+// HISTORIAL: CARGAR OBSERVACIONES
+// ==========================================================
+
+/**
+ * Obtiene el historial profesional del cliente.
+ */
+async function loadHistorial() {
+  try {
+    historialTbody.innerHTML = `
+            <tr>
+                <td colspan="3">Cargando historial...</td>
+            </tr>
+        `;
+
+    const result = await apiRequest(`/api/clientes/${idCliente}/historial`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    if (!result.success) {
+      throw new Error(result.message || "No se ha podido cargar el historial.");
+    }
+
+    const historial = result.historial || [];
+
+    renderHistorial(historial);
+  } catch (error) {
+    console.error("Error al cargar el historial:", error);
+
+    historialTbody.innerHTML = `
+            <tr>
+                <td colspan="3">No se ha podido cargar el historial.</td>
+            </tr>
+        `;
+
+    showHistorialMessage(
+      error.message || "Error al cargar el historial.",
+      "error",
+    );
+  }
+}
+
+// ==========================================================
+// HISTORIAL: MOSTRAR OBSERVACIONES
+// ==========================================================
+
+/**
+ * Representa las observaciones en la tabla.
+ *
+ * @param {Array} historial
+ */
+function renderHistorial(historial) {
+  historialTbody.innerHTML = "";
+
+  totalHistorial.textContent = historial.length;
+
+  if (historial.length === 0) {
+    historialTbody.innerHTML = `
+            <tr>
+                <td colspan="3">Este cliente todavía no tiene observaciones.</td>
+            </tr>
+        `;
+
+    return;
+  }
+
+  historial.forEach((entrada) => {
+    const fila = document.createElement("tr");
+
+    // Identificador de la entrada
+    const celdaId = document.createElement("td");
+    celdaId.textContent = entrada.IDHistorial;
+
+    // Observación
+    const celdaObservacion = document.createElement("td");
+    celdaObservacion.textContent = entrada.observaciones;
+
+    // Peluquero que registró la observación
+    const celdaPeluquero = document.createElement("td");
+    celdaPeluquero.textContent = entrada.peluquero || "No disponible";
+
+    fila.appendChild(celdaId);
+    fila.appendChild(celdaObservacion);
+    fila.appendChild(celdaPeluquero);
+
+    historialTbody.appendChild(fila);
+  });
+}
+
+// ==========================================================
+// HISTORIAL: CREAR OBSERVACIÓN
+// ==========================================================
+
+/**
+ * Registra una nueva observación en el historial.
+ */
+async function crearEntradaHistorial(event) {
+  event.preventDefault();
+
+  const observaciones = historialObservacion.value.trim();
+
+  if (!observaciones) {
+    showHistorialMessage("Escribe una observación antes de guardar.", "error");
+
+    historialObservacion.focus();
+    return;
+  }
+
+  try {
+    guardarHistorialButton.disabled = true;
+
+    const result = await apiRequest(`/api/clientes/${idCliente}/historial`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        observaciones: observaciones,
+      }),
+    });
+
+    if (!result.success) {
+      throw new Error(
+        result.message || "No se ha podido guardar la observación.",
+      );
+    }
+
+    // Limpiar el campo de observaciones
+    historialObservacion.value = "";
+
+    showHistorialMessage(
+      result.message || "La observación se ha añadido correctamente.",
+      "success",
+    );
+
+    // Recargar el historial para mostrar la nueva entrada
+    await loadHistorial();
+  } catch (error) {
+    console.error("Error al guardar la observación:", error);
+
+    showHistorialMessage(
+      error.message || "Error al guardar la observación.",
+      "error",
+    );
+  } finally {
+    guardarHistorialButton.disabled = false;
+  }
+}
+
+// ==========================================================
 // MENSAJES
 // ==========================================================
 
 /**
  * Muestra mensajes relacionados con la ficha del cliente.
- *
- * @param {string} mensaje
- * @param {string} tipo
  */
 function showClienteMessage(mensaje, tipo) {
   if (!clienteMessage) {
@@ -583,9 +684,6 @@ function showClienteMessage(mensaje, tipo) {
 
 /**
  * Muestra mensajes relacionados con el historial.
- *
- * @param {string} mensaje
- * @param {string} tipo
  */
 function showHistorialMessage(mensaje, tipo) {
   if (!historialMessage) {
@@ -607,10 +705,7 @@ function showHistorialMessage(mensaje, tipo) {
 // ==========================================================
 
 /**
- * Convierte una fecha a formato español.
- *
- * Evita desplazamientos de fecha cuando la API devuelve
- * fechas SQL sin información de zona horaria.
+ * Convierte una fecha SQL a formato español.
  *
  * @param {string|null} fecha
  * @returns {string}

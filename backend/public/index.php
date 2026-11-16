@@ -274,6 +274,30 @@ if (
     crearEntradaHistorialCliente((int) $matches[1]);
 }
 
+// PUT /api/historial/{id}
+if (
+    $method === 'PUT'
+    && preg_match('#^/api/historial/(\d+)$#', $path, $matches)
+) {
+    actualizarEntradaHistorialCliente((int) $matches[1]);
+}
+
+// PATCH /api/historial/{id}/eliminar
+if (
+    $method === 'PATCH'
+    && preg_match('#^/api/historial/(\d+)/eliminar$#', $path, $matches)
+) {
+    eliminarEntradaHistorialCliente((int) $matches[1]);
+}
+
+// GET /api/historial/{id}/auditoria
+if (
+    $method === 'GET'
+    && preg_match('#^/api/historial/(\d+)/auditoria$#', $path, $matches)
+) {
+    listarAuditoriaHistorialCliente((int) $matches[1]);
+}
+
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================

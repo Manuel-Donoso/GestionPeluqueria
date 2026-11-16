@@ -1,0 +1,20 @@
+meta {
+  name: modificar historial
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/1/historial
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

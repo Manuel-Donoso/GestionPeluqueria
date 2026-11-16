@@ -63,17 +63,79 @@ CREATE TABLE IF NOT EXISTS CLIENTES (
     baja BOOLEAN DEFAULT FALSE
 );
 
+
 -- ---------------------------------------------------------------------
 -- 4. TABLA: HISTORIALCLIENTES
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS HISTORIALCLIENTES (
     IDHistorial INT AUTO_INCREMENT PRIMARY KEY,
     observaciones TEXT NOT NULL,
+
+    -- Fecha de creación de la anotación
+    FechaCreacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Estado de eliminación lógica
+    Eliminado BOOLEAN NOT NULL DEFAULT FALSE,
+    FechaEliminacion DATETIME NULL,
+    FK_eliminadoPor INT NULL,
+    MotivoEliminacion TEXT NULL,
+
+    -- Datos de la última modificación
+    FechaModificacion DATETIME NULL,
+    FK_modificadoPor INT NULL,
+
     FK_Cliente INT NOT NULL,
     FK_peluquero INT NOT NULL,
 
-    FOREIGN KEY (FK_Cliente) REFERENCES CLIENTES(IDCliente),
-    FOREIGN KEY (FK_peluquero) REFERENCES PELUQUEROS(IDPeluquero)
+    FOREIGN KEY (FK_Cliente)
+        REFERENCES CLIENTES(IDCliente),
+
+    FOREIGN KEY (FK_peluquero)
+        REFERENCES PELUQUEROS(IDPeluquero),
+
+    FOREIGN KEY (FK_modificadoPor)
+        REFERENCES PELUQUEROS(IDPeluquero),
+
+    FOREIGN KEY (FK_eliminadoPor)
+        REFERENCES PELUQUEROS(IDPeluquero),
+
+    INDEX IDX_HISTORIAL_CLIENTE (FK_Cliente),
+    INDEX IDX_HISTORIAL_ELIMINADO (Eliminado)
+);
+
+
+
+-- ---------------------------------------------------------------------
+-- 4.1 TABLA: HISTORIALCLIENTES_AUDITORIA
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS HISTORIALCLIENTES_AUDITORIA (
+    IDAuditoriaHistorial INT AUTO_INCREMENT PRIMARY KEY,
+
+    FK_Historial INT NOT NULL,
+
+    -- MODIFICACION o ELIMINACION
+    operacion ENUM('MODIFICACION', 'ELIMINACION') NOT NULL,
+
+    -- Contenido anterior y nuevo de la anotación
+    observaciones_anteriores TEXT NOT NULL,
+    observaciones_nuevas TEXT NULL,
+
+    -- Usuario que realizó la operación
+    FK_peluquero INT NOT NULL,
+
+    -- Motivo indicado por el usuario
+    motivo TEXT NULL,
+
+    FechaOperacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (FK_Historial)
+        REFERENCES HISTORIALCLIENTES(IDHistorial),
+
+    FOREIGN KEY (FK_peluquero)
+        REFERENCES PELUQUEROS(IDPeluquero),
+
+    INDEX IDX_AUDITORIA_HISTORIAL (FK_Historial),
+    INDEX IDX_AUDITORIA_FECHA (FechaOperacion)
 );
 
 -- ---------------------------------------------------------------------
