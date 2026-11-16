@@ -325,7 +325,7 @@
           <div class="historial-header">
             <h3>Observaciones anteriores</h3>
 
-            <span id="total-historial"> 0 registros </span>
+            <span id="total-historial">0 registros</span>
           </div>
 
           <div class="historial-table-container">
@@ -333,21 +333,105 @@
               <thead>
                 <tr>
                   <th>ID</th>
-
+                  <th>Fecha</th>
                   <th>Observaciones</th>
-
                   <th>Profesional</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
 
               <tbody id="historial-tbody">
                 <tr>
-                  <td colspan="3" class="table-empty">Cargando historial...</td>
+                  <td colspan="5" class="table-empty">Cargando historial...</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+
+        <!-- ==================================================
+     DIÁLOGO: EDITAR OBSERVACIÓN
+=================================================== -->
+
+        <dialog id="editar-historial-dialog">
+          <form id="editar-historial-form">
+            <h3>Editar observación</h3>
+
+            <div class="form-group">
+              <label for="editar-historial-observaciones">
+                Observaciones *
+              </label>
+
+              <textarea
+                id="editar-historial-observaciones"
+                rows="5"
+                required
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="editar-historial-motivo">
+                Motivo de la modificación
+              </label>
+
+              <textarea
+                id="editar-historial-motivo"
+                rows="3"
+                placeholder="Explica por qué se modifica la anotación..."
+              ></textarea>
+            </div>
+
+            <div
+              id="editar-historial-message"
+              class="form-message"
+              role="status"
+              aria-live="polite"
+              hidden
+            ></div>
+
+            <div class="dialog-actions">
+              <button
+                type="button"
+                id="cancelar-editar-historial"
+                class="btn btn-secondary"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="submit"
+                id="guardar-editar-historial"
+                class="btn btn-primary"
+              >
+                Guardar cambios
+              </button>
+            </div>
+          </form>
+        </dialog>
+
+        <!-- ==================================================
+     DIÁLOGO: CONSULTAR AUDITORÍA
+=================================================== -->
+
+        <dialog id="auditoria-historial-dialog">
+          <div class="dialog-content">
+            <h3>Historial de modificaciones</h3>
+
+            <p id="auditoria-historial-titulo"></p>
+
+            <div id="auditoria-historial-contenido">Cargando auditoría...</div>
+
+            <div class="dialog-actions">
+              <button
+                type="button"
+                id="cerrar-auditoria-historial"
+                class="btn btn-secondary"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </dialog>
       </section>
 
       <!-- ==================================================

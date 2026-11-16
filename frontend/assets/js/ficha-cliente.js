@@ -51,6 +51,40 @@ const guardarHistorialButton = document.getElementById(
   "guardar-historial-button",
 );
 
+// Diálogos del historial
+const editarHistorialDialog = document.getElementById(
+  "editar-historial-dialog",
+);
+const editarHistorialForm = document.getElementById("editar-historial-form");
+const editarHistorialObservaciones = document.getElementById(
+  "editar-historial-observaciones",
+);
+const editarHistorialMotivo = document.getElementById(
+  "editar-historial-motivo",
+);
+const editarHistorialMessage = document.getElementById(
+  "editar-historial-message",
+);
+const cancelarEditarHistorialButton = document.getElementById(
+  "cancelar-editar-historial",
+);
+const guardarEditarHistorialButton = document.getElementById(
+  "guardar-editar-historial",
+);
+
+const auditoriaHistorialDialog = document.getElementById(
+  "auditoria-historial-dialog",
+);
+const auditoriaHistorialTitulo = document.getElementById(
+  "auditoria-historial-titulo",
+);
+const auditoriaHistorialContenido = document.getElementById(
+  "auditoria-historial-contenido",
+);
+const cerrarAuditoriaHistorialButton = document.getElementById(
+  "cerrar-auditoria-historial",
+);
+
 // Navegación
 const volverButton = document.getElementById("volver-button");
 
@@ -67,6 +101,9 @@ let clienteActual = null;
 
 // Estado de edición
 let modoEdicion = false;
+
+// Identificador de la anotación que se está editando
+let idHistorialEnEdicion = null;
 
 // ==========================================================
 // INICIALIZACIÓN
@@ -144,6 +181,32 @@ function initializeEvents() {
   if (historialForm) {
     historialForm.addEventListener("submit", crearEntradaHistorial);
   }
+
+  // Acciones de las filas del historial (Delegación de eventos)
+  if (historialTbody) {
+    historialTbody.addEventListener("click", gestionarAccionesHistorial);
+  }
+
+  // Formulario de edición de observaciones
+  if (editarHistorialForm) {
+    editarHistorialForm.addEventListener("submit", actualizarEntradaHistorial);
+  }
+
+  // Cancelar edición
+  if (cancelarEditarHistorialButton) {
+    cancelarEditarHistorialButton.addEventListener("click", () => {
+      editarHistorialDialog.close();
+      editarHistorialForm.reset();
+      idHistorialEnEdicion = null;
+    });
+  }
+
+  // Cerrar auditoría
+  if (cerrarAuditoriaHistorialButton) {
+    cerrarAuditoriaHistorialButton.addEventListener("click", () => {
+      auditoriaHistorialDialog.close();
+    });
+  }
 }
 
 // ==========================================================
@@ -173,11 +236,9 @@ async function loadCliente() {
     }
 
     renderCliente();
-
     showClienteMessage("", "");
   } catch (error) {
     console.error("Error al cargar el cliente:", error);
-
     showClienteMessage(
       error.message || "Error al cargar los datos del cliente.",
       "error",
@@ -208,7 +269,6 @@ function renderCliente() {
   inputFechaAlta.value = formatDate(clienteActual.FechaAlta);
 
   renderEstadoCliente();
-
   setEditMode(false);
 }
 
@@ -225,22 +285,18 @@ function renderEstadoCliente() {
   if (estaDeBaja) {
     clienteEstado.textContent = "De baja";
     clienteEstado.className = "cliente-estado baja";
-
     estadoDescripcion.textContent = "Este cliente se encuentra dado de baja.";
 
     darBajaButton.hidden = true;
     reactivarButton.hidden = false;
-
     editarClienteButton.disabled = true;
   } else {
     clienteEstado.textContent = "Activo";
     clienteEstado.className = "cliente-estado activo";
-
     estadoDescripcion.textContent = "Este cliente se encuentra activo.";
 
     darBajaButton.hidden = false;
     reactivarButton.hidden = true;
-
     editarClienteButton.disabled = false;
   }
 }
@@ -286,7 +342,6 @@ function enableEditMode() {
   }
 
   setEditMode(true);
-
   showClienteMessage("", "");
 }
 
@@ -299,7 +354,6 @@ function cancelEditMode() {
   }
 
   renderCliente();
-
   showClienteMessage("Se ha cancelado la edición.", "success");
 }
 
@@ -377,7 +431,6 @@ async function updateCliente() {
     };
 
     renderCliente();
-
     showClienteMessage(
       result.message ||
         "Los datos del cliente se han actualizado correctamente.",
@@ -385,7 +438,6 @@ async function updateCliente() {
     );
   } catch (error) {
     console.error("Error al actualizar el cliente:", error);
-
     showClienteMessage(
       error.message || "Error al actualizar los datos del cliente.",
       "error",
@@ -432,16 +484,13 @@ async function darDeBajaCliente() {
     }
 
     clienteActual.baja = true;
-
     renderEstadoCliente();
-
     showClienteMessage(
       result.message || "El cliente ha sido dado de baja correctamente.",
       "success",
     );
   } catch (error) {
     console.error("Error al dar de baja al cliente:", error);
-
     showClienteMessage(
       error.message || "Error al dar de baja al cliente.",
       "error",
@@ -488,16 +537,13 @@ async function reactivarCliente() {
     }
 
     clienteActual.baja = false;
-
     renderEstadoCliente();
-
     showClienteMessage(
       result.message || "El cliente ha sido reactivado correctamente.",
       "success",
     );
   } catch (error) {
     console.error("Error al reactivar al cliente:", error);
-
     showClienteMessage(
       error.message || "Error al reactivar al cliente.",
       "error",
@@ -517,10 +563,12 @@ async function reactivarCliente() {
 async function loadHistorial() {
   try {
     historialTbody.innerHTML = `
-            <tr>
-                <td colspan="3">Cargando historial...</td>
-            </tr>
-        `;
+      <tr>
+        <td colspan="5" class="table-empty">
+          Cargando historial...
+        </td>
+      </tr>
+    `;
 
     const result = await apiRequest(`/api/clientes/${idCliente}/historial`, {
       method: "GET",
@@ -533,17 +581,17 @@ async function loadHistorial() {
       throw new Error(result.message || "No se ha podido cargar el historial.");
     }
 
-    const historial = result.historial || [];
-
-    renderHistorial(historial);
+    renderHistorial(result.historial || []);
   } catch (error) {
     console.error("Error al cargar el historial:", error);
 
     historialTbody.innerHTML = `
-            <tr>
-                <td colspan="3">No se ha podido cargar el historial.</td>
-            </tr>
-        `;
+      <tr>
+        <td colspan="5" class="table-empty">
+          No se ha podido cargar el historial.
+        </td>
+      </tr>
+    `;
 
     showHistorialMessage(
       error.message || "Error al cargar el historial.",
@@ -558,44 +606,402 @@ async function loadHistorial() {
 
 /**
  * Representa las observaciones en la tabla.
- *
  * @param {Array} historial
  */
 function renderHistorial(historial) {
   historialTbody.innerHTML = "";
 
-  totalHistorial.textContent = historial.length;
+  totalHistorial.textContent = `${historial.length} ${historial.length === 1 ? "registro" : "registros"}`;
 
   if (historial.length === 0) {
     historialTbody.innerHTML = `
-            <tr>
-                <td colspan="3">Este cliente todavía no tiene observaciones.</td>
-            </tr>
-        `;
-
+      <tr>
+        <td colspan="5" class="table-empty">
+          Este cliente todavía no tiene observaciones.
+        </td>
+      </tr>
+    `;
     return;
   }
 
   historial.forEach((entrada) => {
     const fila = document.createElement("tr");
 
-    // Identificador de la entrada
+    // Identificador
     const celdaId = document.createElement("td");
     celdaId.textContent = entrada.IDHistorial;
 
-    // Observación
-    const celdaObservacion = document.createElement("td");
-    celdaObservacion.textContent = entrada.observaciones;
+    // Fecha de creación y modificación
+    const celdaFecha = document.createElement("td");
+    const fechaCreacion = document.createElement("span");
+    fechaCreacion.textContent = formatDateTime(entrada.FechaCreacion);
+    celdaFecha.appendChild(fechaCreacion);
 
-    // Peluquero que registró la observación
-    const celdaPeluquero = document.createElement("td");
-    celdaPeluquero.textContent = entrada.peluquero || "No disponible";
+    if (entrada.FechaModificacion) {
+      const fechaModificacion = document.createElement("small");
+      fechaModificacion.textContent = `Modificado: ${formatDateTime(entrada.FechaModificacion)}`;
+      celdaFecha.appendChild(document.createElement("br"));
+      celdaFecha.appendChild(fechaModificacion);
+    }
+
+    // Observaciones
+    const celdaObservacion = document.createElement("td");
+    celdaObservacion.textContent = entrada.observaciones || "";
+
+    // Profesional
+    const celdaProfesional = document.createElement("td");
+    celdaProfesional.textContent = entrada.peluquero || "No disponible";
+
+    // Acciones
+    const celdaAcciones = document.createElement("td");
+    const acciones = document.createElement("div");
+    acciones.className = "historial-actions";
+
+    const editarButton = document.createElement("button");
+    editarButton.type = "button";
+    editarButton.className = "btn btn-secondary";
+    editarButton.textContent = "Editar";
+    editarButton.dataset.action = "editar";
+    editarButton.dataset.id = entrada.IDHistorial;
+
+    const eliminarButton = document.createElement("button");
+    eliminarButton.type = "button";
+    eliminarButton.className = "btn btn-danger";
+    eliminarButton.textContent = "Eliminar";
+    eliminarButton.dataset.action = "eliminar";
+    eliminarButton.dataset.id = entrada.IDHistorial;
+
+    const auditoriaButton = document.createElement("button");
+    auditoriaButton.type = "button";
+    auditoriaButton.className = "btn btn-secondary";
+    auditoriaButton.textContent = "Auditoría";
+    auditoriaButton.dataset.action = "auditoria";
+    auditoriaButton.dataset.id = entrada.IDHistorial;
+
+    acciones.appendChild(editarButton);
+    acciones.appendChild(eliminarButton);
+    acciones.appendChild(auditoriaButton);
+    celdaAcciones.appendChild(acciones);
 
     fila.appendChild(celdaId);
+    fila.appendChild(celdaFecha);
     fila.appendChild(celdaObservacion);
-    fila.appendChild(celdaPeluquero);
+    fila.appendChild(celdaProfesional);
+    fila.appendChild(celdaAcciones);
 
     historialTbody.appendChild(fila);
+  });
+}
+
+// ==========================================================
+// HISTORIAL: GESTIÓN DE ACCIONES (GLOBAL)
+// ==========================================================
+
+/**
+ * Gestiona los botones de las filas del historial mediante delegación.
+ * @param {Event} event
+ */
+function gestionarAccionesHistorial(event) {
+  const boton = event.target.closest("button[data-action]");
+
+  if (!boton || !historialTbody.contains(boton)) {
+    return;
+  }
+
+  const idHistorial = Number(boton.dataset.id);
+  const accion = boton.dataset.action;
+
+  if (!Number.isInteger(idHistorial) || idHistorial <= 0) {
+    return;
+  }
+
+  switch (accion) {
+    case "editar":
+      abrirEdicionHistorial(idHistorial);
+      break;
+
+    case "eliminar":
+      eliminarEntradaHistorial(idHistorial);
+      break;
+
+    case "auditoria":
+      consultarAuditoriaHistorial(idHistorial);
+      break;
+  }
+}
+
+// ==========================================================
+// HISTORIAL: ABRIR EDICIÓN
+// ==========================================================
+
+/**
+ * Prepara el diálogo para editar una observación.
+ * @param {number} idHistorial
+ */
+async function abrirEdicionHistorial(idHistorial) {
+  try {
+    const result = await apiRequest(`/api/clientes/${idCliente}/historial`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    if (!result.success) {
+      throw new Error("No se ha podido recuperar la observación.");
+    }
+
+    const entrada = (result.historial || []).find(
+      (item) => Number(item.IDHistorial) === idHistorial,
+    );
+
+    if (!entrada) {
+      throw new Error("No se ha encontrado la observación seleccionada.");
+    }
+
+    idHistorialEnEdicion = idHistorial;
+    editarHistorialObservaciones.value = entrada.observaciones || "";
+    editarHistorialMotivo.value = "";
+
+    mostrarMensajeEdicion("", "");
+    editarHistorialDialog.showModal();
+    editarHistorialObservaciones.focus();
+  } catch (error) {
+    console.error("Error al abrir la edición:", error);
+    showHistorialMessage(
+      error.message || "No se ha podido abrir la edición.",
+      "error",
+    );
+  }
+}
+
+// ==========================================================
+// HISTORIAL: ACTUALIZAR OBSERVACIÓN
+// ==========================================================
+
+/**
+ * Envía los cambios de una observación a la API.
+ * @param {Event} event
+ */
+async function actualizarEntradaHistorial(event) {
+  event.preventDefault();
+
+  if (!idHistorialEnEdicion) {
+    return;
+  }
+
+  const observaciones = editarHistorialObservaciones.value.trim();
+  const motivo = editarHistorialMotivo.value.trim();
+
+  if (!observaciones) {
+    mostrarMensajeEdicion(
+      "El texto de la observación es obligatorio.",
+      "error",
+    );
+    editarHistorialObservaciones.focus();
+    return;
+  }
+
+  try {
+    guardarEditarHistorialButton.disabled = true;
+
+    const result = await apiRequest(`/api/historial/${idHistorialEnEdicion}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        observaciones: observaciones,
+        motivo: motivo || null,
+      }),
+    });
+
+    if (!result.success) {
+      throw new Error(
+        result.message || "No se ha podido actualizar la observación.",
+      );
+    }
+
+    editarHistorialDialog.close();
+    editarHistorialForm.reset();
+    idHistorialEnEdicion = null;
+
+    showHistorialMessage(
+      result.message || "La observación se ha actualizado correctamente.",
+      "success",
+    );
+
+    await loadHistorial();
+  } catch (error) {
+    console.error("Error al actualizar la observación:", error);
+    mostrarMensajeEdicion(
+      error.message || "Error al actualizar la observación.",
+      "error",
+    );
+  } finally {
+    guardarEditarHistorialButton.disabled = false;
+  }
+}
+
+/**
+ * Muestra mensajes dentro del diálogo de edición.
+ */
+function mostrarMensajeEdicion(mensaje, tipo) {
+  editarHistorialMessage.textContent = mensaje;
+  editarHistorialMessage.hidden = !mensaje;
+  editarHistorialMessage.classList.remove("success", "error");
+
+  if (tipo) {
+    editarHistorialMessage.classList.add(tipo);
+  }
+}
+
+// ==========================================================
+// HISTORIAL: ELIMINAR OBSERVACIÓN
+// ==========================================================
+
+/**
+ * Realiza la eliminación lógica de una observación.
+ * @param {number} idHistorial
+ */
+async function eliminarEntradaHistorial(idHistorial) {
+  const motivo = window.prompt(
+    "Indica el motivo por el que deseas eliminar esta observación:",
+  );
+
+  if (motivo === null || !motivo.trim()) {
+    return;
+  }
+
+  const confirmar = window.confirm(
+    "¿Estás seguro de que deseas eliminar esta observación? La operación quedará registrada en la auditoría.",
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+    const result = await apiRequest(`/api/historial/${idHistorial}/eliminar`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        motivo: motivo.trim(),
+      }),
+    });
+
+    if (!result.success) {
+      throw new Error(
+        result.message || "No se ha podido eliminar la observación.",
+      );
+    }
+
+    showHistorialMessage(
+      result.message || "La observación se ha eliminado correctamente.",
+      "success",
+    );
+
+    await loadHistorial();
+  } catch (error) {
+    console.error("Error al eliminar la observación:", error);
+    showHistorialMessage(
+      error.message || "Error al eliminar la observación.",
+      "error",
+    );
+  }
+}
+
+// ==========================================================
+// HISTORIAL: CONSULTAR AUDITORÍA
+// ==========================================================
+
+/**
+ * Consulta las modificaciones y eliminaciones de una observación.
+ * @param {number} idHistorial
+ */
+async function consultarAuditoriaHistorial(idHistorial) {
+  try {
+    auditoriaHistorialTitulo.textContent = `Auditoría de la observación ${idHistorial}`;
+    auditoriaHistorialContenido.textContent = "Cargando auditoría...";
+    auditoriaHistorialDialog.showModal();
+
+    const result = await apiRequest(`/api/historial/${idHistorial}/auditoria`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+    });
+
+    if (!result.success) {
+      throw new Error(
+        result.message || "No se ha podido consultar la auditoría.",
+      );
+    }
+
+    renderAuditoriaHistorial(result.auditoria || []);
+  } catch (error) {
+    console.error("Error al consultar la auditoría:", error);
+    auditoriaHistorialContenido.textContent =
+      error.message || "Error al consultar la auditoría.";
+  }
+}
+
+/**
+ * Representa los registros de auditoría.
+ * @param {Array} auditoria
+ */
+function renderAuditoriaHistorial(auditoria) {
+  auditoriaHistorialContenido.innerHTML = "";
+
+  if (auditoria.length === 0) {
+    auditoriaHistorialContenido.textContent =
+      "Esta observación todavía no tiene modificaciones ni eliminaciones registradas.";
+    return;
+  }
+
+  auditoria.forEach((registro) => {
+    const elemento = document.createElement("article");
+    elemento.className = "auditoria-item";
+
+    const titulo = document.createElement("h4");
+    titulo.textContent =
+      registro.operacion === "ELIMINACION" ? "Eliminación" : "Modificación";
+    elemento.appendChild(titulo);
+
+    const fecha = document.createElement("p");
+    fecha.textContent = `Fecha: ${formatDateTime(registro.FechaOperacion)}`;
+    elemento.appendChild(fecha);
+
+    const profesional = document.createElement("p");
+    profesional.textContent = `Realizado por: ${registro.peluquero || "No disponible"}`;
+    elemento.appendChild(profesional);
+
+    const anteriorTitulo = document.createElement("strong");
+    anteriorTitulo.textContent = "Texto anterior";
+    const anterior = document.createElement("p");
+    anterior.textContent = registro.observaciones_anteriores || "Sin contenido";
+    elemento.appendChild(anteriorTitulo);
+    elemento.appendChild(anterior);
+
+    const nuevoTitulo = document.createElement("strong");
+    nuevoTitulo.textContent = "Texto nuevo";
+    const nuevo = document.createElement("p");
+    nuevo.textContent = registro.observaciones_nuevas || "Sin contenido";
+    elemento.appendChild(nuevoTitulo);
+    elemento.appendChild(nuevo);
+
+    const motivoTitulo = document.createElement("strong");
+    motivoTitulo.textContent = "Motivo";
+    const motivo = document.createElement("p");
+    motivo.textContent = registro.motivo || "No indicado";
+    elemento.appendChild(motivoTitulo);
+    elemento.appendChild(motivo);
+
+    auditoriaHistorialContenido.appendChild(elemento);
   });
 }
 
@@ -613,7 +1019,6 @@ async function crearEntradaHistorial(event) {
 
   if (!observaciones) {
     showHistorialMessage("Escribe una observación antes de guardar.", "error");
-
     historialObservacion.focus();
     return;
   }
@@ -638,19 +1043,15 @@ async function crearEntradaHistorial(event) {
       );
     }
 
-    // Limpiar el campo de observaciones
     historialObservacion.value = "";
-
     showHistorialMessage(
       result.message || "La observación se ha añadido correctamente.",
       "success",
     );
 
-    // Recargar el historial para mostrar la nueva entrada
     await loadHistorial();
   } catch (error) {
     console.error("Error al guardar la observación:", error);
-
     showHistorialMessage(
       error.message || "Error al guardar la observación.",
       "error",
@@ -674,7 +1075,6 @@ function showClienteMessage(mensaje, tipo) {
 
   clienteMessage.textContent = mensaje;
   clienteMessage.hidden = !mensaje;
-
   clienteMessage.classList.remove("success", "error");
 
   if (tipo) {
@@ -692,7 +1092,6 @@ function showHistorialMessage(mensaje, tipo) {
 
   historialMessage.textContent = mensaje;
   historialMessage.hidden = !mensaje;
-
   historialMessage.classList.remove("success", "error");
 
   if (tipo) {
@@ -706,7 +1105,6 @@ function showHistorialMessage(mensaje, tipo) {
 
 /**
  * Convierte una fecha SQL a formato español.
- *
  * @param {string|null} fecha
  * @returns {string}
  */
@@ -723,4 +1121,23 @@ function formatDate(fecha) {
   }
 
   return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+/**
+ * Convierte una fecha SQL a formato español con hora.
+ * @param {string|null} fecha
+ * @returns {string}
+ */
+function formatDateTime(fecha) {
+  if (!fecha) {
+    return "—";
+  }
+
+  const texto = String(fecha).replace("T", " ");
+  const partes = texto.split(" ");
+
+  const fechaFormateada = formatDate(partes[0]);
+  const hora = partes[1] ? partes[1].substring(0, 8) : "";
+
+  return hora ? `${fechaFormateada} ${hora}` : fechaFormateada;
 }
