@@ -41,6 +41,8 @@ require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/logout.php';
 require_once __DIR__ . '/../src/me.php';
 
+require_once __DIR__ . '/../src/auditoria.php';
+
 require_once __DIR__ . '/../src/peluqueros.php';
 require_once __DIR__ . '/../src/clientes.php';
 require_once __DIR__ . '/../src/perfil.php';

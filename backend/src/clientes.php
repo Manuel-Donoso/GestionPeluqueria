@@ -207,6 +207,15 @@ function crearCliente(): void
 
     authenticateUser($pdo);
 
+     // Obtener los datos del usuario autenticado.
+    $usuario = authenticateUser($pdo);
+
+    // Identificar al usuario para los triggers de auditoría.
+    establecerUsuarioAuditoria(
+        $pdo,
+        (int) $usuario['IDPeluquero']
+    );
+
     try {
 
         // Obtener los datos enviados en formato JSON.
@@ -375,6 +384,14 @@ function actualizarCliente(int $id): void
     $pdo = getPDO();
 
     authenticateUser($pdo);
+     // Obtener los datos del usuario autenticado.
+    $usuario = authenticateUser($pdo);
+
+    // Identificar al usuario para los triggers de auditoría.
+    establecerUsuarioAuditoria(
+        $pdo,
+        (int) $usuario['IDPeluquero']
+    );
 
     try {
 
@@ -510,6 +527,15 @@ function darDeBajaCliente(int $id): void
     $pdo = getPDO();
 
     authenticateUser($pdo);
+     
+     // Obtener los datos del usuario autenticado.
+    $usuario = authenticateUser($pdo);
+
+    // Identificar al usuario para los triggers de auditoría.
+    establecerUsuarioAuditoria(
+        $pdo,
+        (int) $usuario['IDPeluquero']
+    );
 
     try {
 
@@ -586,6 +612,14 @@ function reactivarCliente(int $id): void
 
     authenticateUser($pdo);
 
+     // Obtener los datos del usuario autenticado.
+    $usuario = authenticateUser($pdo);
+
+    // Identificar al usuario para los triggers de auditoría.
+    establecerUsuarioAuditoria(
+        $pdo,
+        (int) $usuario['IDPeluquero']
+    );
     try {
 
         // Comprobar que el cliente existe.
