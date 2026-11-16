@@ -42,7 +42,10 @@ require_once __DIR__ . '/../src/logout.php';
 require_once __DIR__ . '/../src/me.php';
 
 require_once __DIR__ . '/../src/peluqueros.php';
+require_once __DIR__ . '/../src/clientes.php';
 require_once __DIR__ . '/../src/perfil.php';
+
+
 // ======================================================
 // CONFIGURACIÓN GENERAL
 // ======================================================
@@ -201,6 +204,55 @@ if (
     cambiarRolPeluquero((int) $matches[1]);
 }
     
+
+// ======================================================
+// ENDPOINTS DE CLIENTES
+// ======================================================
+
+// GET /api/clientes
+if ($method === 'GET' && $path === '/api/clientes') {
+    listarClientes();
+}
+
+// GET /api/clientes/{id}
+if (
+    $method === 'GET'
+    && preg_match('#^/api/clientes/(\d+)$#', $path, $matches)
+) {
+    obtenerCliente((int) $matches[1]);
+}
+
+// POST /api/clientes
+if ($method === 'POST' && $path === '/api/clientes') {
+    crearCliente();
+}
+
+// PUT /api/clientes/{id}
+if (
+    $method === 'PUT'
+    && preg_match('#^/api/clientes/(\d+)$#', $path, $matches)
+) {
+    actualizarCliente((int) $matches[1]);
+}
+
+// PATCH /api/clientes/{id}/baja
+if (
+    $method === 'PATCH'
+    && preg_match('#^/api/clientes/(\d+)/baja$#', $path, $matches)
+) {
+    darDeBajaCliente((int) $matches[1]);
+}
+
+// PATCH /api/clientes/{id}/reactivar
+if (
+    $method === 'PATCH'
+    && preg_match('#^/api/clientes/(\d+)/reactivar$#', $path, $matches)
+) {
+    reactivarCliente((int) $matches[1]);
+}
+
+
+
 // ======================================================
 // ENDPOINT NO ENCONTRADO
 // ======================================================

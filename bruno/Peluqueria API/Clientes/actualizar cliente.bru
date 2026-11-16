@@ -1,0 +1,32 @@
+meta {
+  name: actualizar cliente
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/clientes/5
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "Nombre": "Laura",
+      "Apellido1": "Fernández",
+      "Apellido2": "Sánchez García",
+      "Telefono": "612345678",
+      "Direccion": "Avenida de América 30, Madrid",
+      "Email": "laura.fernandez@email.com",
+      "Notas": "Prefiere cortes a media melena. Actualización de datos."
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

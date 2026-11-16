@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS CLIENTES (
     Nombre VARCHAR(50) NOT NULL,
     Apellido1 VARCHAR(50) NOT NULL,
     Apellido2 VARCHAR(50),
-    Telefono VARCHAR(20) UNIQUE NOT NULL,
+    Telefono VARCHAR(20) NULL,
     Direccion VARCHAR(255),
     Email VARCHAR(100),
     Notas TEXT,
