@@ -1,0 +1,21 @@
+meta {
+  name: historiales del cliente
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/clientes/1/historial
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+​

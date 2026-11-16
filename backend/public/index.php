@@ -45,6 +45,7 @@ require_once __DIR__ . '/../src/auditoria.php';
 
 require_once __DIR__ . '/../src/peluqueros.php';
 require_once __DIR__ . '/../src/clientes.php';
+require_once __DIR__ . '/../src/historial_clientes.php';
 require_once __DIR__ . '/../src/perfil.php';
 
 
@@ -253,7 +254,25 @@ if (
     reactivarCliente((int) $matches[1]);
 }
 
+// ======================================================
+// ENDPOINTS DEL HISTORIAL DE CLIENTES
+// ======================================================
 
+// GET /api/clientes/{id}/historial
+if (
+    $method === 'GET'
+    && preg_match('#^/api/clientes/(\d+)/historial$#', $path, $matches)
+) {
+    listarHistorialCliente((int) $matches[1]);
+}
+
+// POST /api/clientes/{id}/historial
+if (
+    $method === 'POST'
+    && preg_match('#^/api/clientes/(\d+)/historial$#', $path, $matches)
+) {
+    crearEntradaHistorialCliente((int) $matches[1]);
+}
 
 // ======================================================
 // ENDPOINT NO ENCONTRADO
