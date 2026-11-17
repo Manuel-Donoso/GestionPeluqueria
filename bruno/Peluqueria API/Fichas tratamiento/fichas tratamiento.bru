@@ -1,0 +1,20 @@
+meta {
+  name: fichas tratamiento
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/fichas-tratamiento
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

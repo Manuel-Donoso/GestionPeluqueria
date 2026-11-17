@@ -1,0 +1,20 @@
+meta {
+  name: enviar ficha
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/api/fichas-tratamiento/4/enviar
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

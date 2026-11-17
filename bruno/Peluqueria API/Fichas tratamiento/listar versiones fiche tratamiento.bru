@@ -1,0 +1,20 @@
+meta {
+  name: listar versiones fiche tratamiento
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/fichas-tratamiento/1/historial
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

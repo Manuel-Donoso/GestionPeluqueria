@@ -1,0 +1,20 @@
+meta {
+  name: finalizar ficha
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/api/fichas-tratamiento/3/finalizar
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

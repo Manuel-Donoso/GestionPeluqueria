@@ -48,6 +48,7 @@ require_once __DIR__ . '/../src/clientes.php';
 require_once __DIR__ . '/../src/historial_clientes.php';
 require_once __DIR__ . '/../src/perfil.php';
 
+require_once __DIR__ . '/../src/fichas_tratamiento.php';
 
 // ======================================================
 // CONFIGURACIÓN GENERAL
@@ -296,6 +297,138 @@ if (
     && preg_match('#^/api/historial/(\d+)/auditoria$#', $path, $matches)
 ) {
     listarAuditoriaHistorialCliente((int) $matches[1]);
+}
+
+
+// ======================================================
+// ENDPOINTS DE FICHAS DE TRATAMIENTO
+// ======================================================
+
+// GET /api/fichas-tratamiento
+// Listar fichas de tratamiento.
+if ($method === 'GET' && $path === '/api/fichas-tratamiento') {
+    listarFichasTratamiento();
+}
+
+// GET /api/fichas-tratamiento/{id}
+// Obtener una ficha concreta.
+if (
+    $method === 'GET'
+    && preg_match('#^/api/fichas-tratamiento/(\d+)$#', $path, $matches)
+) {
+    obtenerFichaTratamiento((int) $matches[1]);
+}
+
+// POST /api/fichas-tratamiento
+// Crear una nueva ficha de tratamiento.
+if ($method === 'POST' && $path === '/api/fichas-tratamiento') {
+    crearFichaTratamiento();
+}
+
+// PUT /api/fichas-tratamiento/{id}
+// Actualizar una ficha de tratamiento.
+if (
+    $method === 'PUT'
+    && preg_match('#^/api/fichas-tratamiento/(\d+)$#', $path, $matches)
+) {
+    actualizarFichaTratamiento((int) $matches[1]);
+}
+
+
+// ==========================================================
+// ENVIAR FICHA DE TRATAMIENTO
+// ==========================================================
+
+if (
+    $method === 'PATCH'
+    && preg_match(
+        '#^/api/fichas-tratamiento/(\d+)/enviar$#',
+        $path,
+        $matches
+    )
+) {
+    enviarFichaTratamiento((int) $matches[1]);
+}
+
+
+// ==========================================================
+// DEVOLVER FICHA DE TRATAMIENTO
+// ==========================================================
+
+if (
+    $method === 'PATCH'
+    && preg_match(
+        '#^/api/fichas-tratamiento/(\d+)/devolver$#',
+        $path,
+        $matches
+    )
+) {
+    devolverFichaTratamiento((int) $matches[1]);
+}
+
+// ==========================================================
+// Finalizar una ficha de tratamiento.
+// ==========================================================
+if (
+    $method === 'PATCH'
+    && preg_match(
+        '#^/api/fichas-tratamiento/(\d+)/finalizar$#',
+        $path,
+        $matches
+    )
+) {
+    finalizarFichaTratamiento((int) $matches[1]);
+}
+
+
+// Reabrir una ficha de tratamiento.
+if (
+    $method === 'PATCH'
+    && preg_match(
+        '#^/api/fichas-tratamiento/(\d+)/reabrir$#',
+        $path,
+        $matches
+    )
+) {
+    reabrirFichaTratamiento((int) $matches[1]);
+}
+
+// GET /api/fichas-tratamiento/{id}/historial
+// Consultar el historial de una ficha.
+if (
+    $method === 'GET'
+    && preg_match(
+        '#^/api/fichas-tratamiento/(\d+)/historial$#',
+        $path,
+        $matches
+    )
+) {
+    listarHistorialFichaTratamiento((int) $matches[1]);
+}
+
+
+// GET /api/fichas-tratamiento/{id}/versiones
+if (
+    $method === 'GET'
+    && preg_match('#^/api/fichas-tratamiento/(\d+)/versiones$#', $path, $matches)
+) {
+    listarVersionesFichaTratamiento((int) $matches[1]);
+}
+
+
+// GET /api/fichas-tratamiento/{id}/versiones/{numeroVersion}
+if (
+    $method === 'GET'
+    && preg_match(
+        '#^/api/fichas-tratamiento/(\d+)/versiones/(\d+)$#',
+        $path,
+        $matches
+    )
+) {
+    obtenerVersionFichaTratamiento(
+        (int) $matches[1],
+        (int) $matches[2]
+    );
 }
 
 // ======================================================

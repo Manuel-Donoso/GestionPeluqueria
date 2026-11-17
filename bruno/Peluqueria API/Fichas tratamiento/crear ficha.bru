@@ -1,0 +1,28 @@
+meta {
+  name: crear ficha
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/fichas-tratamiento
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "FK_Cliente": 3,
+      "FK_Peluquero": 2,
+      "FechaTratamiento": "2026-11-17"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
