@@ -1,0 +1,27 @@
+meta {
+  name: reabrir ficha
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/api/fichas-tratamiento/3/reabrir
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "Motivo": "Reapertura para corregir y completar los datos del tratamiento"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+​

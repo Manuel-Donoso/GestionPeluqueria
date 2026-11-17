@@ -1,0 +1,52 @@
+meta {
+  name: actualizar ficha tratamiento
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/fichas-tratamiento/5
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "FechaTratamiento": "2026-11-20",
+      "ColorCompleto": true,
+      "Alergias": 0,
+      "AlergiasDetalles": null,
+      "ObjetivoAltura": "Rubio claro",
+      "ObjetivoReflejo": "Ceniza",
+      "TecnicaJustificacion": "Aclaración progresiva",
+      "Formulas": [
+          {
+              "ZonaFase": "Raiz",
+              "Tono": "8.1",
+              "Gramos": 30,
+              "Oxidante": "20 vol",
+              "CantidadOxidante": 60,
+              "Proporcion": "1:2",
+              "Tiempo": "35 minutos"
+          },
+          {
+              "ZonaFase": "Matiz",
+              "Tono": "9.1",
+              "Gramos": 20,
+              "Oxidante": "10 vol",
+              "CantidadOxidante": 40,
+              "Proporcion": "1:2",
+              "Tiempo": "15 minutos"
+          }
+      ]
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

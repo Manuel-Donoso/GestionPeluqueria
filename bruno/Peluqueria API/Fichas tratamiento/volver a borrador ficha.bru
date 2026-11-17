@@ -1,0 +1,26 @@
+meta {
+  name: volver a borrador ficha
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/api/fichas-tratamiento/4/devolver
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "Motivo": "Es necesario revisar la fórmula de color y completar la información de la prueba de mechón."
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

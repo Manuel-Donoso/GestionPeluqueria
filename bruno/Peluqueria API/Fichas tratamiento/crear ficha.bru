@@ -4,14 +4,22 @@ meta {
   seq: 3
 }
 
-get {
+post {
   url: {{baseUrl}}/api/fichas-tratamiento
-  body: none
+  body: json
   auth: bearer
 }
 
 auth:bearer {
   token: {{token}}
+}
+
+body:json {
+  {
+      "FK_Cliente": 3,
+      "FK_Peluquero": 2,
+      "FechaTratamiento": "2026-11-17"
+  }
 }
 
 settings {
